@@ -1,0 +1,5 @@
+.vs/
+/Sudoku/bin/*
+/Sudoku/obj/*
+/SudokuTests/bin/*
+/SudokuTests/obj/*
