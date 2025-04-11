@@ -5,84 +5,205 @@
     /// </summary>
     public class Grid
     {
-        private readonly int[,] grid; // this is where we store the numbers on the board
+        // Represents the length of the grid's side
+        public int sideLength { get; }
+        public int totalCells { get; }
 
-        /// <summary>
-        /// The length of one of the sides of the grid. Assumes all grids are squares for now.
-        /// </summary>
-        public int SideLength { get; }
+        private readonly ulong[,] digitBitboards;
 
-        /// <summary>
-        /// Creates a new instance of <see cref="Grid"/>
-        /// </summary>
-        /// <param name="sideLength">Optional parameter for the side length. Default is 9.</param>
         public Grid(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
         {
-            SideLength = sideLength;
-            grid = new int[SideLength, SideLength];
+            this.sideLength = sideLength;
+            totalCells = sideLength * sideLength;
+            digitBitboards = new ulong[sideLength + 1, (sideLength * sideLength + 63) / 64];
         }
 
-        /// <summary>
-        /// Will create an instance of <see cref="Grid"/> from the data in the provided string. Both "0" and "." work as empty tiles.
-        /// </summary>
-        /// <param name="gridString">The string with the data.</param>
-        /// <param name="sideLength">Optional parameter for the length of a side in the square grid. Defaults to 9.</param>
-        /// <returns>A new instance of <see cref="Grid"/></returns>
         public static Grid CreateFromString(string gridString, int sideLength = 9)
         {
-            throw new NotImplementedException($"{nameof(CreateFromString)} needs to be implemented before it can be used!");
-        }
+            // Check if the length of the gridString is valid
+            if (gridString.Length != sideLength * sideLength)
+                throw new ArgumentException("Grid string length does not match the expected grid size.");
 
-        /// <summary>
-        /// Will return a bool indicating wether or not the grid that this method is called on is identical to the other grid in terms of the values that are in the cells of the grid.
-        /// </summary>
-        /// <param name="otherGrid">The other grid to compare to.</param>
-        public bool HasSameCellValuesAs(Grid otherGrid)
-        {
-            throw new NotImplementedException($"{nameof(CreateFromString)} needs to be implemented before it can be used!");
-        }
+            var grid = new Grid(sideLength);
 
-        /// <summary>
-        /// Will get the value of a cell at a specific coordinate.
-        /// </summary>
-        /// <param name="x">The zero indexed x coordinate.</param>
-        /// <param name="y">The zero indexed y coordinate.</param>
-        /// <returns></returns>
-        public int GetCell(int x, int y)
-        {
-            return grid[y, x];
-        }
-
-        /// <summary>
-        /// Will set the value of a cell at a specific coordinate.
-        /// </summary>
-        /// <param name="x">The x coordinate to set the value for.</param>
-        /// <param name="y">The y coordinate to set the value for.</param>
-        /// <param name="value">The value to set at the given coordinates.</param>
-        public void SetCell(int x, int y, int value)
-        {
-            if (value < 0 || value > SideLength)
+            for (int i = 0; i < gridString.Length; i++)
             {
-                throw new ArgumentOutOfRangeException(nameof(value), $"Value must be between 0 and 9 (0 means empty).");
+                char c = gridString[i];
+                if (c == '0' | c == '.') continue; // Skip empty cells
+
+                if (c >= '1' && c <= '0' + sideLength)
+                {
+                    int digit = c - '0';
+                    if (digit >= 1 && digit <= sideLength)
+                    {
+                        grid.SetCell(i, digit); // Set the digit if it's within the allowed range
+                    }
+                }
+                else
+                    throw new ArgumentException($"Invalid character '{c}' in grid string.");
             }
 
-            if(x < 0 || x >= SideLength)
-                throw new ArgumentOutOfRangeException(nameof(x), $"The index \"{x}\" is not valid. Must be between 0 and {SideLength}.");
-
-            if (y < 0 || y >= SideLength)
-                throw new ArgumentOutOfRangeException(nameof(y), $"The index \"{y}\" is not valid. Must be between 0 and {SideLength}.");
-
-            grid[y, x] = value;
+            return grid;
         }
 
-        /// <summary>
-        /// Will get a value indicating wether or not the cell at the provided coordinates is empty.
-        /// </summary>
-        /// <param name="x">The x coordinate to set the value for.</param>
-        /// <param name="y">The y coordinate to set the value for.</param>
-        public bool IsCellEmpty(int x, int y)
+        public bool HasSameCellValuesAs(Grid otherGrid)
         {
-            return grid[y, x] == 0;
+            // Check that they are the same size
+            if (sideLength != otherGrid.sideLength) return false;
+
+            // Match each element
+            for (int i = 0; i < totalCells; i++)
+            {
+                if (GetCell(i) != otherGrid.GetCell(i)) return false;
+            }
+
+            return true;
         }
+
+        public void SetCell(int col, int row, int digit)
+        {
+            SetCell(row * sideLength + col, digit);
+        }
+        private void SetCell(int position, int digit)
+        {
+            if (digit < 1 || digit > sideLength)
+                throw new ArgumentOutOfRangeException(nameof(digit), "Digit must be between 1 and sideLength.");
+
+            if (position < 0 || position >= totalCells)
+                throw new ArgumentOutOfRangeException(nameof(position), "Position must be within the valid range.");
+
+            int bitboardNbr = position / 64;
+            int newPosition = position - bitboardNbr * 64;
+
+            // Set the corresponding bit in the digit's bitboard
+            SetBit(ref digitBitboards[digit, bitboardNbr], newPosition);
+
+            // Clear the corresponding bit in the emptyCellsBitboard (digitBitboards[0])
+            SetBit(ref digitBitboards[0, bitboardNbr], newPosition);
+        }
+
+        public int GetCell(int col, int row)
+        {
+            return GetCell(row * sideLength + col);
+        }
+        private int GetCell(int position)
+        {
+            int bitboardNbr = position / 64;
+            int newPosition = position - bitboardNbr * 64;
+
+            // Check if the cell is empty (bit in digitBitboards[0] is set)
+            if (IsCellEmpty(position)) return 0;
+
+            // Check each digit bitboard to find the digit at the given position
+            for (int digit = 1; digit <= sideLength; digit++)
+            {
+                if (GetBit(digitBitboards[digit, bitboardNbr], position) != 0)
+                    return digit;
+            }
+            return 0; // Should never happen
+        }
+
+        public bool IsCellEmpty(int col, int row)
+        {
+            return IsCellEmpty(row * sideLength + col);
+        }
+        private bool IsCellEmpty(int position)
+        {
+            int bitboardNbr = position / 64;
+            int newPosition = position - bitboardNbr * 64;
+
+            return GetBit(digitBitboards[0, bitboardNbr], newPosition) == 0;
+        }
+
+        public ulong GetRow(int row, int digit)
+        {
+            ulong rowBitboard = 0;
+
+            // Iterate through the columns
+            for (int col = 0; col < sideLength; col++)
+            {
+                int position = row * sideLength + col;
+
+                int bitboardNbr = position / 64;
+                int newPosition = position - bitboardNbr * 64;
+
+                if (GetBit(digitBitboards[digit, bitboardNbr], newPosition) != 0)
+                {
+                    rowBitboard |= (1UL << col);
+                }
+            }
+
+            return rowBitboard;
+        }
+
+        public ulong GetColumn(int col, int digit)
+        {
+            ulong colBitboard = 0;
+
+            // Iterate through the rows (0 to sideLength-1)
+            for (int row = 0; row < sideLength; row++)
+            {
+                int position = row * sideLength + col;
+
+                int bitboardNbr = position / 64;
+                int newPosition = position - bitboardNbr * 64;
+
+                if (GetBit(digitBitboards[digit, bitboardNbr], newPosition) != 0)
+                {
+                    colBitboard |= (1UL << row);
+                }
+            }
+
+            return colBitboard;
+        }
+
+        public ulong GetSquare(int squareIndex, int digit)
+        {
+            ulong squareBitboard = 0;
+
+            // Determine the top-left corner of the square
+            int startRow = (squareIndex / 3) * 3;
+            int startCol = (squareIndex % 3) * 3;
+
+            // Iterate over all 9 cells in the 3x3 square
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    int row = startRow + i;
+                    int col = startCol + j;
+                    int position = row * sideLength + col;
+
+                    int bitboardNbr = position / 64;
+                    int newPosition = position - bitboardNbr * 64;
+
+                    if (GetBit(digitBitboards[digit, bitboardNbr], newPosition) != 0)
+                    {
+                        squareBitboard |= (1UL << (i * 3 + j));
+                    }
+                }
+            }
+
+            return squareBitboard;
+        }
+
+        // Method to set the bit at a specific position to 1
+        private void SetBit(ref ulong x, int position)
+        {
+            x |= (1UL << position);  // Set the bit at position to 1
+        }
+
+        // Method to clear the bit at a specific position (set it to 0)
+        private void ClearBit(ref ulong x, int position)
+        {
+            x &= ~(1UL << position);  // Clear the bit at position (set it to 0)
+        }
+
+        // Method to get the value of the bit at a specific position (1 or 0)
+        public int GetBit(ulong x, int position)
+        {
+            return ((x >> position) & 1) == 1 ? 1 : 0;  // Return 1 if bit is set, else 0
+        }
+
     }
 }
