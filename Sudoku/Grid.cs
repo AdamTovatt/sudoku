@@ -1,4 +1,6 @@
-﻿namespace Sudoku
+﻿using System.Text;
+
+namespace Sudoku
 {
     /// <summary>
     /// Represents a Sudoku grid. Like the "board" of a Sudoku.
@@ -6,35 +8,35 @@
     public class Grid
     {
         // Represents the length of the grid's side
-        public int sideLength { get; }
-        public int totalCells { get; }
+        public int SideLength { get; }
+        public int TotalCells { get; }
 
         private readonly ulong[,] digitBitboards;
 
         public Grid(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
         {
-            this.sideLength = sideLength;
-            totalCells = sideLength * sideLength;
+            SideLength = sideLength;
+            TotalCells = sideLength * sideLength;
             digitBitboards = new ulong[sideLength + 1, (sideLength * sideLength + 63) / 64];
         }
 
-        public static Grid CreateFromString(string gridString, int sideLength = 9)
+        public static Grid CreateFromString(string gridString, int SideLength = 9)
         {
             // Check if the length of the gridString is valid
-            if (gridString.Length != sideLength * sideLength)
+            if (gridString.Length != SideLength * SideLength)
                 throw new ArgumentException("Grid string length does not match the expected grid size.");
 
-            var grid = new Grid(sideLength);
+            Grid grid = new Grid(SideLength);
 
             for (int i = 0; i < gridString.Length; i++)
             {
                 char c = gridString[i];
                 if (c == '0' | c == '.') continue; // Skip empty cells
 
-                if (c >= '1' && c <= '0' + sideLength)
+                if (c >= '1' && c <= '0' + SideLength)
                 {
                     int digit = c - '0';
-                    if (digit >= 1 && digit <= sideLength)
+                    if (digit >= 1 && digit <= SideLength)
                     {
                         grid.SetCell(i, digit); // Set the digit if it's within the allowed range
                     }
@@ -49,10 +51,10 @@
         public bool HasSameCellValuesAs(Grid otherGrid)
         {
             // Check that they are the same size
-            if (sideLength != otherGrid.sideLength) return false;
+            if (SideLength != otherGrid.SideLength) return false;
 
             // Match each element
-            for (int i = 0; i < totalCells; i++)
+            for (int i = 0; i < TotalCells; i++)
             {
                 if (GetCell(i) != otherGrid.GetCell(i)) return false;
             }
@@ -60,59 +62,64 @@
             return true;
         }
 
-        public void SetCell(int col, int row, int digit)
+
+
+        public void SetCell(int column, int row, int digit)
         {
-            SetCell(row * sideLength + col, digit);
+            SetCell(row * SideLength + column, digit);
         }
+
         private void SetCell(int position, int digit)
         {
-            if (digit < 1 || digit > sideLength)
-                throw new ArgumentOutOfRangeException(nameof(digit), "Digit must be between 1 and sideLength.");
+            if (digit < 1 || digit > SideLength)
+                throw new ArgumentOutOfRangeException(nameof(digit), $"Digit must be between 1 and {SideLength}.");
 
-            if (position < 0 || position >= totalCells)
+            if (position < 0 || position >= TotalCells)
                 throw new ArgumentOutOfRangeException(nameof(position), "Position must be within the valid range.");
 
-            int bitboardNbr = position / 64;
-            int newPosition = position - bitboardNbr * 64;
+            int bitboardNumber = position / 64;
+            int newPosition = position - bitboardNumber * 64;
 
             // Set the corresponding bit in the digit's bitboard
-            SetBit(ref digitBitboards[digit, bitboardNbr], newPosition);
+            SetBit(ref digitBitboards[digit, bitboardNumber], newPosition);
 
             // Clear the corresponding bit in the emptyCellsBitboard (digitBitboards[0])
-            SetBit(ref digitBitboards[0, bitboardNbr], newPosition);
+            SetBit(ref digitBitboards[0, bitboardNumber], newPosition);
         }
 
-        public int GetCell(int col, int row)
+        public int GetCell(int column, int row)
         {
-            return GetCell(row * sideLength + col);
+            return GetCell(row * SideLength + column);
         }
+
         private int GetCell(int position)
         {
-            int bitboardNbr = position / 64;
-            int newPosition = position - bitboardNbr * 64;
+            int bitboardNumber = position / 64;
+            int newPosition = position - bitboardNumber * 64;
 
             // Check if the cell is empty (bit in digitBitboards[0] is set)
             if (IsCellEmpty(position)) return 0;
 
             // Check each digit bitboard to find the digit at the given position
-            for (int digit = 1; digit <= sideLength; digit++)
+            for (int digit = 1; digit <= SideLength; digit++)
             {
-                if (GetBit(digitBitboards[digit, bitboardNbr], position) != 0)
+                if (GetBit(digitBitboards[digit, bitboardNumber], position) != 0)
                     return digit;
             }
             return 0; // Should never happen
         }
 
-        public bool IsCellEmpty(int col, int row)
+        public bool IsCellEmpty(int column, int row)
         {
-            return IsCellEmpty(row * sideLength + col);
+            return IsCellEmpty(row * SideLength + column);
         }
+
         private bool IsCellEmpty(int position)
         {
-            int bitboardNbr = position / 64;
-            int newPosition = position - bitboardNbr * 64;
+            int bitboardNumber = position / 64;
+            int newPosition = position - bitboardNumber * 64;
 
-            return GetBit(digitBitboards[0, bitboardNbr], newPosition) == 0;
+            return GetBit(digitBitboards[0, bitboardNumber], newPosition) == 0;
         }
 
         public ulong GetRow(int row, int digit)
@@ -120,35 +127,35 @@
             ulong rowBitboard = 0;
 
             // Iterate through the columns
-            for (int col = 0; col < sideLength; col++)
+            for (int column = 0; column < SideLength; column++)
             {
-                int position = row * sideLength + col;
+                int position = row * SideLength + column;
 
-                int bitboardNbr = position / 64;
-                int newPosition = position - bitboardNbr * 64;
+                int bitboardNumber = position / 64;
+                int newPosition = position - bitboardNumber * 64;
 
-                if (GetBit(digitBitboards[digit, bitboardNbr], newPosition) != 0)
+                if (GetBit(digitBitboards[digit, bitboardNumber], newPosition) != 0)
                 {
-                    rowBitboard |= (1UL << col);
+                    rowBitboard |= (1UL << column);
                 }
             }
 
             return rowBitboard;
         }
 
-        public ulong GetColumn(int col, int digit)
+        public ulong GetColumn(int column, int digit)
         {
             ulong colBitboard = 0;
 
-            // Iterate through the rows (0 to sideLength-1)
-            for (int row = 0; row < sideLength; row++)
+            // Iterate through the rows (0 to SideLength-1)
+            for (int row = 0; row < SideLength; row++)
             {
-                int position = row * sideLength + col;
+                int position = row * SideLength + column;
 
-                int bitboardNbr = position / 64;
-                int newPosition = position - bitboardNbr * 64;
+                int bitboardNumber = position / 64;
+                int newPosition = position - bitboardNumber * 64;
 
-                if (GetBit(digitBitboards[digit, bitboardNbr], newPosition) != 0)
+                if (GetBit(digitBitboards[digit, bitboardNumber], newPosition) != 0)
                 {
                     colBitboard |= (1UL << row);
                 }
@@ -163,7 +170,7 @@
 
             // Determine the top-left corner of the square
             int startRow = (squareIndex / 3) * 3;
-            int startCol = (squareIndex % 3) * 3;
+            int startColumn = (squareIndex % 3) * 3;
 
             // Iterate over all 9 cells in the 3x3 square
             for (int i = 0; i < 3; i++)
@@ -171,13 +178,13 @@
                 for (int j = 0; j < 3; j++)
                 {
                     int row = startRow + i;
-                    int col = startCol + j;
-                    int position = row * sideLength + col;
+                    int column = startColumn + j;
+                    int position = row * SideLength + column;
 
-                    int bitboardNbr = position / 64;
-                    int newPosition = position - bitboardNbr * 64;
+                    int bitboardNumber = position / 64;
+                    int newPosition = position - bitboardNumber * 64;
 
-                    if (GetBit(digitBitboards[digit, bitboardNbr], newPosition) != 0)
+                    if (GetBit(digitBitboards[digit, bitboardNumber], newPosition) != 0)
                     {
                         squareBitboard |= (1UL << (i * 3 + j));
                     }
@@ -185,6 +192,21 @@
             }
 
             return squareBitboard;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int column = 0; column < SideLength; column++)
+            {
+                for (int row = 0; row < SideLength; row++)
+                {
+                    stringBuilder.Append(GetCell(row, column).ToString());
+                    stringBuilder.Append(" ");
+                }
+                stringBuilder.Append("\n");
+            }
+            return stringBuilder.ToString();
         }
 
         // Method to set the bit at a specific position to 1
