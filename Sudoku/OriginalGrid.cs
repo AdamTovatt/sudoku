@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a Sudoku grid. Like the "board" of a Sudoku.
     /// </summary>
-    public class GridOld
+    public class OriginalGrid : IGrid
     {
         private readonly int[,] grid; // this is where we store the numbers on the board
 
@@ -13,28 +13,28 @@
         public int SideLength { get; }
 
         /// <summary>
-        /// Creates a new instance of <see cref="GridOld"/>
+        /// Creates a new instance of <see cref="OriginalGrid"/>
         /// </summary>
         /// <param name="sideLength">Optional parameter for the side length. Default is 9.</param>
-        public GridOld(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
+        public OriginalGrid(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
         {
             SideLength = sideLength;
             grid = new int[sideLength, sideLength];
         }
 
         /// <summary>
-        /// Will create an instance of <see cref="GridOld"/> from the data in the provided string. Both "0" and "." work as empty tiles.
+        /// Will create an instance of <see cref="OriginalGrid"/> from the data in the provided string. Both "0" and "." work as empty tiles.
         /// </summary>
         /// <param name="gridString">The string with the data.</param>
         /// <param name="sideLength">Optional parameter for the length of a side in the square grid. Defaults to 9.</param>
-        /// <returns>A new instance of <see cref="GridOld"/></returns>
-        public static GridOld CreateFromString(string gridString, int sideLength = 9)
+        /// <returns>A new instance of <see cref="OriginalGrid"/></returns>
+        public static IGrid CreateFromString(string gridString, int sideLength = 9)
         {
             // Check if the length of the gridString is valid
             if (gridString.Length != sideLength * sideLength)
                 throw new ArgumentException("Grid string length does not match the expected grid size.");
 
-            GridOld grid = new GridOld(sideLength);
+            OriginalGrid grid = new OriginalGrid(sideLength);
             int index = 0;
 
             for (int y = 0; y < sideLength; y++)
@@ -60,14 +60,19 @@
             return grid;
         }
 
+        public int GetSideLength()
+        {
+            return SideLength;
+        }
+
         /// <summary>
         /// Will return a bool indicating wether or not the grid that this method is called on is identical to the other grid in terms of the values that are in the cells of the grid.
         /// </summary>
         /// <param name="otherGrid">The other grid to compare to.</param>
-        public bool HasSameCellValuesAs(GridOld otherGrid)
+        public bool HasSameCellValuesAs(IGrid otherGrid)
         {
             // Check that they are the same size
-            if (SideLength != otherGrid.SideLength) return false;
+            if (SideLength != otherGrid.GetSideLength()) return false;
 
             // Match each element
             for (int y = 0; y < SideLength; y++)

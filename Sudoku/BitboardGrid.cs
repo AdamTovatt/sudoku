@@ -5,26 +5,26 @@ namespace Sudoku
     /// <summary>
     /// Represents a Sudoku grid. Like the "board" of a Sudoku.
     /// </summary>
-    public class Grid
+    public class BitboardGrid : IGrid
     {
         // Represents the length of the grid's side
         public int SideLength { get; }
 
         private readonly ulong[,] digitBitboards;
 
-        public Grid(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
+        public BitboardGrid(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
         {
             SideLength = sideLength;
             digitBitboards = new ulong[sideLength + 1, (sideLength * sideLength + 63) / 64];
         }
 
-        public static Grid CreateFromString(string gridString, int SideLength = 9)
+        public static IGrid CreateFromString(string gridString, int SideLength = 9)
         {
             // Check if the length of the gridString is valid
             if (gridString.Length != SideLength * SideLength)
                 throw new ArgumentException("Grid string length does not match the expected grid size.");
 
-            Grid grid = new Grid(SideLength);
+            BitboardGrid grid = new BitboardGrid(SideLength);
 
             for (int i = 0; i < gridString.Length; i++)
             {
@@ -46,10 +46,15 @@ namespace Sudoku
             return grid;
         }
 
-        public bool HasSameCellValuesAs(Grid otherGrid)
+        public int GetSideLength()
+        {
+            return SideLength;
+        }
+
+        public bool HasSameCellValuesAs(IGrid otherGrid)
         {
             // Check that they are the same size
-            if (SideLength != otherGrid.SideLength) return false;
+            if (SideLength != otherGrid.GetSideLength()) return false;
 
             // Match each element
             for (int y = 0; y < SideLength; y++)
