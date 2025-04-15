@@ -5,7 +5,7 @@ namespace Sudoku
     /// <summary>
     /// Represents a Sudoku grid. Like the "board" of a Sudoku.
     /// </summary>
-    public class Grid
+    public class BitBoardGrid
     {
         // Represents the length of the grid's side
         public int SideLength { get; }
@@ -13,20 +13,20 @@ namespace Sudoku
 
         private readonly ulong[,] digitBitboards;
 
-        public Grid(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
+        public BitBoardGrid(int sideLength = 9) // let's default the side length to 9 since we only care about that now anyway
         {
             SideLength = sideLength;
             TotalCells = sideLength * sideLength;
             digitBitboards = new ulong[sideLength + 1, (sideLength * sideLength + 63) / 64];
         }
 
-        public static Grid CreateFromString(string gridString, int SideLength = 9)
+        public static BitBoardGrid CreateFromString(string gridString, int SideLength = 9)
         {
             // Check if the length of the gridString is valid
             if (gridString.Length != SideLength * SideLength)
                 throw new ArgumentException("Grid string length does not match the expected grid size.");
 
-            Grid grid = new Grid(SideLength);
+            BitBoardGrid grid = new BitBoardGrid(SideLength);
 
             for (int i = 0; i < gridString.Length; i++)
             {
@@ -48,7 +48,7 @@ namespace Sudoku
             return grid;
         }
 
-        public bool HasSameCellValuesAs(Grid otherGrid)
+        public bool HasSameCellValuesAs(BitBoardGrid otherGrid)
         {
             // Check that they are the same size
             if (SideLength != otherGrid.SideLength) return false;
