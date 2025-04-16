@@ -43,5 +43,9 @@ namespace Sudoku
       /// <param name="x">The x coordinate to set the value for.</param>
       /// <param name="y">The y coordinate to set the value for.</param>
       public bool IsCellEmpty(int x, int y);
+
+      public bool IsValid(int x, int y, int digit);
+
+      public void ClearCell(int x, int y);
    }
 }

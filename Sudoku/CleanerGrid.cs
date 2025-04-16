@@ -111,13 +111,28 @@ namespace Sudoku
          return SideLength;
       }
 
-      private bool IsValid(int x, int y, int digit)
+      public bool IsValid(int x, int y, int digit)
       {
          int squareIndex = (y / 3) * 3 + (x / 3);
          int mask = 1 << digit;
          return (rows[y] & mask) == 0 &&
                (columns[x] & mask) == 0 &&
                (squares[squareIndex] & mask) == 0;
+      }
+
+      public void ClearCell(int x, int y)
+      {
+         int value = grid[x, y];
+
+         // Clear the cell
+         grid[x, y] = 0;
+
+         int mask = ~(1 << (value - 1));
+
+         // Clear the bit in the bitmasks
+         rows[y] &= mask;
+         columns[x] &= mask;
+         squares[y / 3 * 3 + (x / 3)] &= mask;
       }
 
       public bool IsDigitInRow(int row, int digit)

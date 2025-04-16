@@ -141,5 +141,15 @@ namespace Sudoku
             }
             return stringBuilder.ToString();
         }
+
+        public bool IsValid(int x, int y, int digit)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ClearCell(int x, int y)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
