@@ -1,34 +1,47 @@
 using Sudoku;
+using Sudoku.Solvers;
 
 namespace SudokuTests
 {
     [TestClass]
     public class GridTests
     {
-        public TestContext TestContext { get; set; }
-
-        public IGrid CreateGrid(string stringData, int sideLength = 9)
-        {
-            return CleanerGrid.CreateFromString(stringData, sideLength);
-        }
-
         [TestMethod]
         public void TestEmpty()
         {
-            string zeros = new string('0', 81);
+            int xSideLength = 9;
+            int ySideLength = 9;
 
-            IGrid grid = BitboardGrid.CreateFromString(zeros);
+            string zeros = new string('0', xSideLength * ySideLength);
 
-            Assert.IsTrue(grid.IsCellEmpty(0, 0));
+            Grid grid = Grid.CreateFromString(zeros);
 
-            grid.SetCell(0, 0, 4);
-
-            Assert.IsFalse(grid.IsCellEmpty(0, 0));
+            for (int x = 0; x < xSideLength; x++)
+            {
+                for (int y = 0; y < ySideLength; y++)
+                {
+                    Assert.IsTrue(grid.IsCellEmpty(0, 0));
+                }
+            }
         }
 
-        public void PrintBoard(IGrid grid)
+        [TestMethod]
+        public void GetAndSetValues()
         {
-            TestContext.WriteLine(grid.ToString());
+            int xSideLength = 9;
+            int ySideLength = 9;
+
+            string zeros = new string('0', xSideLength * ySideLength);
+
+            Grid grid = Grid.CreateFromString(zeros);
+
+            grid.SetCell(x: 0, y: 0, value: 4);
+            Assert.IsFalse(grid.IsCellEmpty(0, 0));
+            Assert.AreEqual(4, grid.GetCell(0, 0));
+
+            grid.SetCell(x: 4, y: 7, value: 8);
+            Assert.IsFalse(grid.IsCellEmpty(4, 7));
+            Assert.AreEqual(8, grid.GetCell(4, 7));
         }
 
         [TestMethod]
@@ -36,11 +49,10 @@ namespace SudokuTests
         {
             const string stringData = "1..5.37..6.3..8.9......98...1.......8761..........6...........7.8.9.76.47...6.312";
 
-            IGrid grid = CreateGrid(stringData, 9);
+            Grid grid = Grid.CreateFromString(stringData, 9);
 
             Assert.AreEqual(9, grid.GetSideLength());
 
-            PrintBoard(grid);
             Assert.IsFalse(grid.IsCellEmpty(0, 0));
             Assert.IsTrue(grid.IsCellEmpty(1, 0));
 
@@ -76,7 +88,7 @@ namespace SudokuTests
         {
             const string stringData = "..3.8.5...4.....9.7..15.4..98...1..5..2.7983...5.6....1....6.5.8.....7..........4";
 
-            IGrid grid = CreateGrid(stringData, 9);
+            Grid grid = Grid.CreateFromString(stringData, 9);
 
             Assert.AreEqual(9, grid.GetSideLength());
 
@@ -103,13 +115,13 @@ namespace SudokuTests
         {
             const string gridData = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
 
-            IGrid grid1 = CreateGrid(gridData, 9);
-            IGrid grid2 = CreateGrid(gridData, 9);
+            Grid grid1 = Grid.CreateFromString(gridData, 9);
+            Grid grid2 = Grid.CreateFromString(gridData, 9);
 
             Assert.IsTrue(grid1.HasSameCellValuesAs(grid2));
 
-            grid1 = CreateGrid(gridData, 9);
-            grid2 = CreateGrid(gridData); // create with out optional parameter here just to ensure the default of 9 is still working
+            grid1 = Grid.CreateFromString(gridData, 9);
+            grid2 = Grid.CreateFromString(gridData); // create with out optional parameter here just to ensure the default of 9 is still working
 
             Assert.IsTrue(grid1.HasSameCellValuesAs(grid2));
         }
@@ -119,13 +131,13 @@ namespace SudokuTests
         {
             const string gridData = "..7.....34...6..12.....37..1.8.57.......8..6......21...........6...459....9....87";
 
-            IGrid grid1 = CreateGrid(gridData, 9);
-            IGrid grid2 = CreateGrid(gridData, 9);
+            Grid grid1 = Grid.CreateFromString(gridData, 9);
+            Grid grid2 = Grid.CreateFromString(gridData, 9);
 
             Assert.IsTrue(grid1.HasSameCellValuesAs(grid2));
 
-            grid1 = CreateGrid(gridData, 9);
-            grid2 = CreateGrid(gridData); // create with out optional parameter here just to ensure the default of 9 is still working
+            grid1 = Grid.CreateFromString(gridData, 9);
+            grid2 = Grid.CreateFromString(gridData); // create with out optional parameter here just to ensure the default of 9 is still working
 
             Assert.IsTrue(grid1.HasSameCellValuesAs(grid2));
         }
@@ -136,13 +148,13 @@ namespace SudokuTests
             const string gridData1 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
             const string gridData2 = "..7.....34...6..12.....37..1.8.57.......8..6......21...........6...459....9....87";
 
-            IGrid grid1 = CreateGrid(gridData1, 9);
-            IGrid grid2 = CreateGrid(gridData2, 9);
+            Grid grid1 = Grid.CreateFromString(gridData1, 9);
+            Grid grid2 = Grid.CreateFromString(gridData2, 9);
 
             Assert.IsFalse(grid1.HasSameCellValuesAs(grid2));
 
-            grid1 = CreateGrid(gridData1, 9);
-            grid2 = CreateGrid(gridData2); // create with out optional parameter here just to ensure the default of 9 is still working
+            grid1 = Grid.CreateFromString(gridData1, 9);
+            grid2 = Grid.CreateFromString(gridData2); // create with out optional parameter here just to ensure the default of 9 is still working
 
             Assert.IsFalse(grid1.HasSameCellValuesAs(grid2));
         }
@@ -153,15 +165,38 @@ namespace SudokuTests
             const string gridData1 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
             const string gridData2 = ".9.....8.5......96......4..6..34....91.....2.2...6..17.1....8...6..17..97...95..."; // just one character differing
 
-            IGrid grid1 = CreateGrid(gridData1, 9);
-            IGrid grid2 = CreateGrid(gridData2, 9);
+            Grid grid1 = Grid.CreateFromString(gridData1, 9);
+            Grid grid2 = Grid.CreateFromString(gridData2, 9);
 
             Assert.IsFalse(grid1.HasSameCellValuesAs(grid2));
 
-            grid1 = CreateGrid(gridData1, 9);
-            grid2 = CreateGrid(gridData2); // create with out optional parameter here just to ensure the default of 9 is still working
+            grid1 = Grid.CreateFromString(gridData1, 9);
+            grid2 = Grid.CreateFromString(gridData2); // create with out optional parameter here just to ensure the default of 9 is still working
 
             Assert.IsFalse(grid1.HasSameCellValuesAs(grid2));
+        }
+
+        [TestMethod]
+        public void SolveWithBruteForceSolver()
+        {
+            const string gridData1 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
+            Grid grid = Grid.CreateFromString(gridData1);
+
+            bool didSolve = Solver.SolveWith(grid, Solver.BruteForceAlgorithm);
+
+            Assert.IsTrue(didSolve, "Solving should return true");
+
+            bool isSolved = grid.IsSolved(out InvalidCellInformation? invalidCellInformation);
+
+            Assert.IsTrue(isSolved, invalidCellInformation?.ToString());
+        }
+
+        [TestMethod]
+        public void GetIsValid()
+        {
+            // we need to implement this test. We currently have no tests to ensure the grid.IsValid() method works but it's an important part of the
+            // grid class and will probably be used by all or at least some solvers as well as for validating that the solvers are done
+            Assert.Fail();
         }
     }
 }
