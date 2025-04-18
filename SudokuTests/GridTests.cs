@@ -192,6 +192,21 @@ namespace SudokuTests
         }
 
         [TestMethod]
+        public void SolveWithBitSolver()
+        {
+            const string gridData1 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
+            Grid grid = Grid.CreateFromString(gridData1);
+
+            bool didSolve = Solver.SolveWith(grid, Solver.BitAlgorithm);
+
+            Assert.IsTrue(didSolve, "Solving should return true");
+
+            bool isSolved = grid.IsSolved(out InvalidCellInformation? invalidCellInformation);
+
+            Assert.IsTrue(isSolved, invalidCellInformation?.ToString());
+        }
+
+        [TestMethod]
         public void GetIsValid()
         {
             // we need to implement this test. We currently have no tests to ensure the grid.IsValid() method works but it's an important part of the
@@ -209,6 +224,7 @@ namespace SudokuTests
             Assert.IsTrue(grid.IsValid(1, 2, 8));
             Assert.IsTrue(grid.IsValid(7, 1, 3));
             Assert.IsTrue(grid.IsValid(8, 6, 2));
+
             Assert.IsTrue(grid.IsValid(1, 2, 8));
             Assert.IsTrue(grid.IsValid(7, 1, 3));
             Assert.IsTrue(grid.IsValid(8, 6, 2));

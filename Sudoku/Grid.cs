@@ -135,12 +135,12 @@ namespace Sudoku
 
         public bool IsDigitInRow(int row, int digit)
         {
-            return (rows[row] & (1 << digit)) != 0;
+            return (rows[row] & (1 << digit - 1)) != 0;
         }
 
         public bool IsDigitInColumn(int column, int digit)
         {
-            return (columns[column] & (1 << digit)) != 0;
+            return (columns[column] & (1 << digit - 1)) != 0;
         }
 
         public bool IsDigitInSquare(int x, int y, int digit)
@@ -148,8 +148,6 @@ namespace Sudoku
             int squareIndex = y / 3 * 3 + (x / 3);
             return (squares[squareIndex] & (1 << (digit - 1))) != 0;
         }
-
-
 
         public bool IsSolved(out InvalidCellInformation? invalidCellInformation)
         {
