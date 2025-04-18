@@ -149,6 +149,8 @@ namespace Sudoku
             return (squares[squareIndex] & (1 << (digit - 1))) != 0;
         }
 
+
+
         public bool IsSolved(out InvalidCellInformation? invalidCellInformation)
         {
             for (int x = 0; x < SideLength; x++)
@@ -164,6 +166,7 @@ namespace Sudoku
 
                     if (cellValue == 0 || !IsValid(x, y, cellValue))
                     {
+                        SetCell(x, y, cellValue);
                         invalidCellInformation = new InvalidCellInformation(x, y, cellValue);
                         return false;
                     }
