@@ -112,7 +112,7 @@ namespace Sudoku
         public bool IsValid(int x, int y, int digit)
         {
             int squareIndex = (y / 3) * 3 + (x / 3);
-            int mask = 1 << digit;
+            int mask = 1 << (digit - 1);
             return (rows[y] & mask) == 0 &&
                   (columns[x] & mask) == 0 &&
                   (squares[squareIndex] & mask) == 0;
@@ -157,11 +157,18 @@ namespace Sudoku
                 {
                     int cellValue = GetCell(x, y);
 
+                    // TODO: Optimize this so it doesn't have to ClearCell and then SetCell
+                    // each time. Don't change IsValid, since IsValid is more important that
+                    // it's fast.
+                    ClearCell(x, y);
+
                     if (cellValue == 0 || !IsValid(x, y, cellValue))
                     {
                         invalidCellInformation = new InvalidCellInformation(x, y, cellValue);
                         return false;
                     }
+
+                    SetCell(x, y, cellValue);
                 }
             }
 

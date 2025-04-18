@@ -196,7 +196,28 @@ namespace SudokuTests
         {
             // we need to implement this test. We currently have no tests to ensure the grid.IsValid() method works but it's an important part of the
             // grid class and will probably be used by all or at least some solvers as well as for validating that the solvers are done
-            Assert.Fail();
+            const string stringData = ".................................................................................";
+
+            Grid grid = Grid.CreateFromString(stringData);
+
+            grid.SetCell(0, 0, 1);
+
+            Assert.IsFalse(grid.IsValid(2, 2, 1)); // False by square
+            Assert.IsFalse(grid.IsValid(0, 8, 1)); // False by column
+            Assert.IsFalse(grid.IsValid(5, 0, 1)); // False by row
+
+            Assert.IsTrue(grid.IsValid(1, 2, 8));
+            Assert.IsTrue(grid.IsValid(7, 1, 3));
+            Assert.IsTrue(grid.IsValid(8, 6, 2));
+            Assert.IsTrue(grid.IsValid(1, 2, 8));
+            Assert.IsTrue(grid.IsValid(7, 1, 3));
+            Assert.IsTrue(grid.IsValid(8, 6, 2));
+
+            grid.SetCell(0, 0, 4);
+
+            Assert.IsFalse(grid.IsValid(2, 2, 4)); // False by square
+            Assert.IsFalse(grid.IsValid(0, 8, 4)); // False by column
+            Assert.IsFalse(grid.IsValid(5, 0, 4)); // False by row
         }
     }
 }
