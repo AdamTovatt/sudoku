@@ -9,8 +9,8 @@ namespace Sudoku.Solvers
 
         private bool Solve(Grid grid, int row, int column)
         {
-            if (column == grid.GetSideLength()) { column = 0; row++; }
-            if (row == grid.GetSideLength()) return true;
+            if (column == grid.SideLength) { column = 0; row++; }
+            if (row == grid.SideLength) return true;
 
             // If the digit is already filled in
             if (grid.GetCell(column, row) != 0) return Solve(grid, row, column + 1);

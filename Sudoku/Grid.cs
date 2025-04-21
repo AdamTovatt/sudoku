@@ -5,9 +5,9 @@ namespace Sudoku
     public class Grid
     {
         private int[,] grid;
-        private int[] rows;
-        private int[] columns;
-        private int[] squares;
+        public int[] rows;
+        public int[] columns;
+        public int[] squares;
 
         public int SideLength;
 
@@ -54,7 +54,7 @@ namespace Sudoku
         public bool HasSameCellValuesAs(Grid otherGrid)
         {
             // Check that they are the same size
-            if (SideLength != otherGrid.GetSideLength()) return false;
+            if (SideLength != otherGrid.SideLength) return false;
 
             // Match each element
             for (int y = 0; y < SideLength; y++)
@@ -102,11 +102,6 @@ namespace Sudoku
         public bool IsCellEmpty(int x, int y)
         {
             return grid[x, y] == 0;
-        }
-
-        public int GetSideLength()
-        {
-            return SideLength;
         }
 
         public bool IsValid(int x, int y, int digit)

@@ -51,7 +51,7 @@ namespace SudokuTests
 
             Grid grid = Grid.CreateFromString(stringData, 9);
 
-            Assert.AreEqual(9, grid.GetSideLength());
+            Assert.AreEqual(9, grid.SideLength);
 
             Assert.IsFalse(grid.IsCellEmpty(0, 0));
             Assert.IsTrue(grid.IsCellEmpty(1, 0));
@@ -90,7 +90,7 @@ namespace SudokuTests
 
             Grid grid = Grid.CreateFromString(stringData, 9);
 
-            Assert.AreEqual(9, grid.GetSideLength());
+            Assert.AreEqual(9, grid.SideLength);
 
             Assert.IsTrue(grid.IsCellEmpty(0, 0));
             Assert.IsTrue(grid.IsCellEmpty(1, 0));
