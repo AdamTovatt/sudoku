@@ -10,14 +10,16 @@ namespace Sudoku
         public int[] squares;
 
         public int SideLength;
+        public int OriginalDigitCount;
 
-        public Grid(int sideLength)
+        private Grid(int sideLength)
         {
             SideLength = sideLength;
             grid = new int[sideLength, sideLength];
             rows = new int[sideLength];
             columns = new int[sideLength];
             squares = new int[sideLength];
+            OriginalDigitCount = 0;
         }
 
         public static Grid CreateFromString(string gridString, int sideLength = 9)
@@ -39,6 +41,7 @@ namespace Sudoku
 
                     if (character >= '1' && character <= '9')
                     {
+                        grid.OriginalDigitCount++;
                         grid.SetCell(x, y, character - '0'); // Convert char digit to int
                     }
                     else
