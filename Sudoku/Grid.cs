@@ -10,7 +10,7 @@ namespace Sudoku
         public int[] squares;
 
         public int SideLength;
-        public int OriginalDigitCount;
+        public int DigitCount;
 
         private Grid(int sideLength)
         {
@@ -19,7 +19,7 @@ namespace Sudoku
             rows = new int[sideLength];
             columns = new int[sideLength];
             squares = new int[sideLength];
-            OriginalDigitCount = 0;
+            DigitCount = 0;
         }
 
         public static Grid CreateFromString(string gridString, int sideLength = 9)
@@ -41,7 +41,6 @@ namespace Sudoku
 
                     if (character >= '1' && character <= '9')
                     {
-                        grid.OriginalDigitCount++;
                         grid.SetCell(x, y, character - '0'); // Convert char digit to int
                     }
                     else
@@ -86,6 +85,8 @@ namespace Sudoku
 
             // Update the cell value
             grid[x, y] = value;
+
+            DigitCount++;
 
             int mask = 1 << (value - 1);
             int square = y / 3 * 3 + (x / 3);
@@ -143,8 +144,7 @@ namespace Sudoku
 
         public bool IsDigitInSquare(int x, int y, int digit)
         {
-            int squareIndex = y / 3 * 3 + (x / 3);
-            return (squares[squareIndex] & (1 << (digit - 1))) != 0;
+            return (squares[y / 3 * 3 + (x / 3)] & (1 << (digit - 1))) != 0;
         }
 
         public bool IsSolved(out InvalidCellInformation? invalidCellInformation)

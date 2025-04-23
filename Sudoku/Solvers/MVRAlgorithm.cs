@@ -20,7 +20,7 @@ namespace Sudoku.Solvers
         public bool SolveGrid(Grid grid)
         {
             this.grid = grid;
-            return Solve(grid.OriginalDigitCount);
+            return Solve(grid.DigitCount);
         }
 
         public (int x, int y, int mask)? FindCellWithFewestOptions()
@@ -38,11 +38,12 @@ namespace Sudoku.Solvers
 
                     int count = BitOperations.PopCount((uint)available);
                     if (count == 0) return null; // early fail
+                    if (count == 1) return (x, y, available); // early success
+
                     if (count < minimumOptions)
                     {
                         minimumOptions = count;
                         best = (x, y, available);
-                        if (count == 1) return best; // lower than 1 is not possible
                     }
                 }
             }
