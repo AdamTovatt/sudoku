@@ -195,25 +195,6 @@ namespace SudokuTests
         }
 
         [TestMethod]
-        public void SolveWithBitSolver()
-        {
-            const string gridData1 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
-            const string gridData2 = "...1............1...................1....................................1.......";
-
-            Grid grid1 = Grid.CreateFromString(gridData1);
-            Grid grid2 = Grid.CreateFromString(gridData2);
-
-            bool didSolve = Solver.SolveWith(grid1, Solver.BitAlgorithm);
-
-            Assert.IsTrue(didSolve, "Solving should return true");
-
-            bool isSolved = grid1.IsSolved(out InvalidCellInformation? invalidCellInformation);
-
-            Assert.IsTrue(isSolved, invalidCellInformation?.ToString());
-            Assert.IsTrue(Solver.SolveWith(grid2, Solver.BitAlgorithm));
-        }
-
-        [TestMethod]
         public void SolveWithMVRSolver()
         {
             const string gridData1 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
@@ -230,6 +211,25 @@ namespace SudokuTests
 
             Assert.IsTrue(isSolved1, invalidCellInformation?.ToString());
             Assert.IsTrue(Solver.SolveWith(grid2, Solver.MVRAlgorithm));
+        }
+
+        [TestMethod]
+        public void SolveWithMVRSolve2()
+        {
+            const string gridData1 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
+            const string gridData2 = "...1............1...................1....................................1.......";
+
+            Grid grid1 = Grid.CreateFromString(gridData1);
+            Grid grid2 = Grid.CreateFromString(gridData2);
+
+            bool didSolve1 = Solver.SolveWith(grid1, Solver.MVRAlgorithm2);
+
+            Assert.IsTrue(didSolve1, "Solving should return true");
+
+            bool isSolved1 = grid1.IsSolved(out InvalidCellInformation? invalidCellInformation);
+
+            Assert.IsTrue(isSolved1, invalidCellInformation?.ToString());
+            Assert.IsTrue(Solver.SolveWith(grid2, Solver.MVRAlgorithm2));
         }
 
         [TestMethod]
@@ -260,40 +260,42 @@ namespace SudokuTests
             Assert.IsFalse(grid.IsValid(5, 0, 4)); // False by row
         }
 
-        [TestMethod]
-        public void TestFindCellWithFewestOptions()
-        {
-            const string gridData1 = "12345678.........................................................................";
-            const string gridData2 = "123......456......78.............................................................";
-            const string gridData3 = "123......456......7..............................................................";
-            const string fullString = "111111111111111111111111111111111111111111111111111111111111111111111111111111111";
+        /*
+                [TestMethod]
+                public void TestFindCellWithFewestOptions()
+                {
+                    const string gridData1 = "12345678.........................................................................";
+                    const string gridData2 = "123......456......78.............................................................";
+                    const string gridData3 = "123......456......7..............................................................";
+                    const string fullString = "111111111111111111111111111111111111111111111111111111111111111111111111111111111";
 
-            Grid grid1 = Grid.CreateFromString(gridData1);
-            Grid grid2 = Grid.CreateFromString(gridData2);
-            Grid grid3 = Grid.CreateFromString(gridData3);
-            Grid fullGrid = Grid.CreateFromString(fullString);
+                    Grid grid1 = Grid.CreateFromString(gridData1);
+                    Grid grid2 = Grid.CreateFromString(gridData2);
+                    Grid grid3 = Grid.CreateFromString(gridData3);
+                    Grid fullGrid = Grid.CreateFromString(fullString);
 
-            MVRAlgorithm mvrSolver = new MVRAlgorithm();
+                    MVRAlgorithm mvrSolver = new MVRAlgorithm();
 
-            var cell1 = mvrSolver.FindCellWithFewestOptions(grid1);
-            if (cell1 == null) Assert.Fail();
+                    var cell1 = mvrSolver.FindCellWithFewestOptions(grid1);
+                    if (cell1 == null) Assert.Fail();
 
-            var cell2 = mvrSolver.FindCellWithFewestOptions(grid2);
-            if (cell2 == null) Assert.Fail();
+                    var cell2 = mvrSolver.FindCellWithFewestOptions(grid2);
+                    if (cell2 == null) Assert.Fail();
 
-            var cell3 = mvrSolver.FindCellWithFewestOptions(grid3);
-            if (cell3 == null) Assert.Fail();
+                    var cell3 = mvrSolver.FindCellWithFewestOptions(grid3);
+                    if (cell3 == null) Assert.Fail();
 
-            Assert.AreEqual(8, cell1.Value.x);
-            Assert.AreEqual(0, cell1.Value.y);
+                    Assert.AreEqual(8, cell1.Value.x);
+                    Assert.AreEqual(0, cell1.Value.y);
 
-            Assert.AreEqual(2, cell2.Value.x);
-            Assert.AreEqual(2, cell2.Value.y);
+                    Assert.AreEqual(2, cell2.Value.x);
+                    Assert.AreEqual(2, cell2.Value.y);
 
-            Assert.IsTrue(cell3.Value.x == 1 || cell3.Value.x == 2);
-            Assert.IsTrue(cell3.Value.y == 2);
+                    Assert.IsTrue(cell3.Value.x == 1 || cell3.Value.x == 2);
+                    Assert.IsTrue(cell3.Value.y == 2);
 
-            Assert.IsTrue(mvrSolver.FindCellWithFewestOptions(fullGrid) == null);
-        }
+                    Assert.IsTrue(mvrSolver.FindCellWithFewestOptions(fullGrid) == null);
+                }
+        */
     }
 }

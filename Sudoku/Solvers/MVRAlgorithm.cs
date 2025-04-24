@@ -16,7 +16,7 @@ namespace Sudoku.Solvers
             return Solve(grid, grid.DigitCount);
         }
 
-        public (int x, int y, int mask)? FindCellWithFewestOptions(Grid grid)
+        private (int x, int y, int mask)? FindCellWithFewestOptions(Grid grid)
         {
             int minimumOptions = boardSideLength + 1;
             (int x, int y, int mask) best = (-1, -1, 0);
@@ -27,11 +27,11 @@ namespace Sudoku.Solvers
                 {
                     if (grid.GetCell(x, y) != 0) continue;
 
-                    int available = ~(grid.rows[y] | grid.columns[x] | grid.squares[(x / 3) + (y / 3) * 3]) & 0b111111111;
+                    int available = ~(grid.rows[y] | grid.columns[x] | grid.squares[(x / 3) + y / 3 * 3]) & 0b111111111;
 
                     int count = BitOperations.PopCount((uint)available);
-                    if (count == 0) return null; // early fail
-                    if (count == 1) return (x, y, available); // early success
+                    if (count == 0) return null;
+                    if (count == 1) return (x, y, available);
 
                     if (count < minimumOptions)
                     {
