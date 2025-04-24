@@ -175,6 +175,25 @@ namespace Sudoku
             return true;
         }
 
+        public Grid Copy()
+        {
+            Grid copy = new Grid(SideLength);
+
+            for (int y = 0; y < SideLength; y++)
+            {
+                for (int x = 0; x < SideLength; x++)
+                {
+                    int value = grid[x, y];
+                    if (value != 0)
+                    {
+                        copy.SetCell(x, y, value);
+                    }
+                }
+            }
+
+            return copy;
+        }
+
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder(SideLength * SideLength * 2); // * 2 since we add spaces

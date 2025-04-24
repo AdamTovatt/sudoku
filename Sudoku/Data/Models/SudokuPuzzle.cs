@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Text;
 
 namespace Sudoku.Data.Models
 {
@@ -9,24 +8,29 @@ namespace Sudoku.Data.Models
     public class SudokuPuzzle
     {
         /// <summary>
-        /// Gets or sets the grid representing the unsolved puzzle.
+        /// Gets or sets a copy of the grid representing the unsolved puzzle. Will always return a deep copy of the grid that represents the unsolved puzzles so that it's safe to use with solvers.
         /// </summary>
-        public Grid StartingGrid { get; set; }
+        public Grid StartingGrid
+        {
+            get { return startingGrid.Copy(); }
+            private set { startingGrid = value; }
+        }
+        private Grid startingGrid;
 
         /// <summary>
         /// Gets or sets the grid representing the solved puzzle.
         /// </summary>
-        public Grid SolvedGrid { get; set; }
+        public Grid SolvedGrid { get; private set; }
 
         /// <summary>
         /// Gets or sets the raw numeric difficulty value of the puzzle.
         /// </summary>
-        public double DifficultyValue { get; set; }
+        public double DifficultyValue { get; private set; }
 
         /// <summary>
         /// Gets or sets the number of given clues in the puzzle.
         /// </summary>
-        public int Clues { get; set; }
+        public int Clues { get; private set; }
 
         /// <summary>
         /// Gets the interpreted difficulty category based on <see cref="DifficultyValue"/>.
@@ -48,7 +52,7 @@ namespace Sudoku.Data.Models
         /// <param name="clues">The number of clues given in the puzzle.</param>
         public SudokuPuzzle(Grid startingGrid, Grid solvedGrid, double difficultyValue, int clues)
         {
-            StartingGrid = startingGrid;
+            this.startingGrid = startingGrid;
             SolvedGrid = solvedGrid;
             DifficultyValue = difficultyValue;
             Clues = clues;
@@ -68,12 +72,12 @@ namespace Sudoku.Data.Models
 
             try
             {
-                Grid puzzleGrid = Grid.CreateFromString(parts[1]);
+                Grid startingGrid = Grid.CreateFromString(parts[1]);
                 Grid solutionGrid = Grid.CreateFromString(parts[2]);
                 int clues = int.Parse(parts[3]);
                 double difficultyValue = double.Parse(parts[4], CultureInfo.InvariantCulture);
 
-                return new SudokuPuzzle(puzzleGrid, solutionGrid, difficultyValue, clues);
+                return new SudokuPuzzle(startingGrid, solutionGrid, difficultyValue, clues);
             }
             catch
             {
@@ -96,7 +100,7 @@ namespace Sudoku.Data.Models
         /// <returns>A string in the format: id,puzzle,solution,clues,difficulty</returns>
         public override string ToString()
         {
-            string puzzle = StartingGrid.ToString().Replace(" ", "").Replace("\n", "");
+            string puzzle = startingGrid.ToString().Replace(" ", "").Replace("\n", "");
             string solution = SolvedGrid.ToString().Replace(" ", "").Replace("\n", "");
 
             return $"0,{puzzle},{solution},{Clues},{DifficultyValue.ToString(CultureInfo.InvariantCulture)}";
