@@ -29,7 +29,7 @@ class Program
         MeasureAlgorithm(Solver.MVRAlgorithm, 50000);
 
         Console.WriteLine("*** MVR algorithm 2");
-        MeasureAlgorithm(Solver.MVRAlgorithm, 50000);
+        MeasureAlgorithm(Solver.MVRAlgorithm2, 50000);
     }
 
     public static void MeasureAlgorithm(ISolvingAlgorithm algorithm, int repetitions)
