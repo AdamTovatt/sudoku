@@ -4,12 +4,12 @@ namespace Sudoku.Solvers
 {
     public class TempBitAlgorithm : ISolvingAlgorithm
     {
-        private Grid grid = null!;
         private const int BoardSidelength = 9;
         private Cell[,] cells = InitCells();
+
         private static Cell[,] InitCells()
         {
-            var grid = new Cell[BoardSidelength, BoardSidelength];
+            Cell[,] grid = new Cell[BoardSidelength, BoardSidelength];
             for (int x = 0; x < BoardSidelength; x++)
                 for (int y = 0; y < BoardSidelength; y++)
                     grid[x, y] = new Cell();
@@ -18,16 +18,15 @@ namespace Sudoku.Solvers
 
         public bool SolveGrid(Grid grid)
         {
-            this.grid = grid;
-            while (PlaceAllGuaranteed()) ;
-            return BruteForceSolveGrid();
+            while (PlaceAllGuaranteed(grid)) ;
+            return BruteForceSolveGrid(grid);
         }
 
-        private bool PlaceAllGuaranteed()
+        private bool PlaceAllGuaranteed(Grid grid)
         {
             bool placed = false;
 
-            while (FillNearlyCompleteStructures())
+            while (FillNearlyCompleteStructures(grid))
             {
                 placed = true;
             }
@@ -46,7 +45,7 @@ namespace Sudoku.Solvers
                             continue;
                         }
 
-                        if (PlaceGuaranteed(x, y, digit))
+                        if (PlaceGuaranteed(grid, x, y, digit))
                         {
                             placed = true;
                             break;
@@ -57,7 +56,7 @@ namespace Sudoku.Solvers
             return placed;
         }
 
-        private bool PlaceGuaranteed(int x, int y, int digit)
+        private bool PlaceGuaranteed(Grid grid, int x, int y, int digit)
         {
             int rowBoxStart = x / 3 * 3;
             int colBoxStart = y / 3 * 3;
@@ -78,10 +77,10 @@ namespace Sudoku.Solvers
             return false;
         }
 
-        private bool FillNearlyCompleteStructures()
+        private bool FillNearlyCompleteStructures(Grid grid)
         {
             bool placed = false;
-            int fullMask = 0b111111111;
+            const int fullMask = 0b111111111;
 
             for (int index = 0; index < BoardSidelength; index++)
             {
@@ -153,18 +152,18 @@ namespace Sudoku.Solvers
             return placed;
         }
 
-        public bool BruteForceSolveGrid()
+        public bool BruteForceSolveGrid(Grid grid)
         {
-            return Solve(0, 0);
+            return Solve(grid, 0, 0);
         }
 
-        private bool Solve(int column, int row)
+        private bool Solve(Grid grid, int column, int row)
         {
             if (column == grid.SideLength) { column = 0; row++; }
             if (row == grid.SideLength) return true;
 
             // If the digit is already filled in
-            if (grid.GetCell(column, row) != 0) return Solve(column + 1, row);
+            if (grid.GetCell(column, row) != 0) return Solve(grid, column + 1, row);
 
             // Tries new numbers if square is empty
             else
@@ -174,7 +173,7 @@ namespace Sudoku.Solvers
                     if (grid.IsValid(column, row, digit))
                     {
                         grid.SetCell(column, row, digit);
-                        if (Solve(column + 1, row)) return true;
+                        if (Solve(grid, column + 1, row)) return true;
                         grid.ClearCell(column, row); // Backtrack
                     }
                 }
@@ -190,7 +189,7 @@ namespace Sudoku.Solvers
             public Cell()
             {
                 // Initialize with digits 1 through 9
-                PossibleDigits = Enumerable.Range(1, 9).ToHashSet();
+                PossibleDigits = GetCleanPossibleDigitsSet();
             }
 
             public void RemoveDigit(int digit)
@@ -198,9 +197,9 @@ namespace Sudoku.Solvers
                 PossibleDigits.Remove(digit);
             }
 
-            public void Reset()
+            public HashSet<int> GetCleanPossibleDigitsSet()
             {
-                PossibleDigits = Enumerable.Range(1, 9).ToHashSet();
+                return new HashSet<int>(9) { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; // use size parameter for better performance
             }
 
             public bool HasOnlyOnePossibility()

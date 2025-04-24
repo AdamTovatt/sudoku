@@ -273,18 +273,15 @@ namespace SudokuTests
             Grid grid3 = Grid.CreateFromString(gridData3);
             Grid fullGrid = Grid.CreateFromString(fullString);
 
-            MVRAlgorithm mvrSolver1 = new MVRAlgorithm(grid1);
-            MVRAlgorithm mvrSolver2 = new MVRAlgorithm(grid2);
-            MVRAlgorithm mvrSolver3 = new MVRAlgorithm(grid3);
-            MVRAlgorithm mvrSolver4 = new MVRAlgorithm(fullGrid);
+            MVRAlgorithm mvrSolver = new MVRAlgorithm();
 
-            var cell1 = mvrSolver1.FindCellWithFewestOptions();
+            var cell1 = mvrSolver.FindCellWithFewestOptions(grid1);
             if (cell1 == null) Assert.Fail();
 
-            var cell2 = mvrSolver2.FindCellWithFewestOptions();
+            var cell2 = mvrSolver.FindCellWithFewestOptions(grid2);
             if (cell2 == null) Assert.Fail();
 
-            var cell3 = mvrSolver3.FindCellWithFewestOptions();
+            var cell3 = mvrSolver.FindCellWithFewestOptions(grid3);
             if (cell3 == null) Assert.Fail();
 
             Assert.AreEqual(8, cell1.Value.x);
@@ -296,7 +293,7 @@ namespace SudokuTests
             Assert.IsTrue(cell3.Value.x == 1 || cell3.Value.x == 2);
             Assert.IsTrue(cell3.Value.y == 2);
 
-            Assert.IsTrue(mvrSolver4.FindCellWithFewestOptions() == null);
+            Assert.IsTrue(mvrSolver.FindCellWithFewestOptions(fullGrid) == null);
         }
     }
 }

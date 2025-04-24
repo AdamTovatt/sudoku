@@ -7,30 +7,23 @@ namespace Sudoku.Solvers
     // with the least possibilities as the next square.
     public class MVRAlgorithm : ISolvingAlgorithm
     {
-        private Grid grid = null!;
-        private const int BoardSidelength = 9;
+        private const int boardSideLength = 9;
 
         public MVRAlgorithm() { }
 
-        public MVRAlgorithm(Grid grid)
-        {
-            this.grid = grid;
-        }
-
         public bool SolveGrid(Grid grid)
         {
-            this.grid = grid;
-            return Solve(grid.DigitCount);
+            return Solve(grid, grid.DigitCount);
         }
 
-        public (int x, int y, int mask)? FindCellWithFewestOptions()
+        public (int x, int y, int mask)? FindCellWithFewestOptions(Grid grid)
         {
-            int minimumOptions = BoardSidelength + 1;
+            int minimumOptions = boardSideLength + 1;
             (int x, int y, int mask) best = (-1, -1, 0);
 
-            for (int x = 0; x < BoardSidelength; x++)
+            for (int x = 0; x < boardSideLength; x++)
             {
-                for (int y = 0; y < BoardSidelength; y++)
+                for (int y = 0; y < boardSideLength; y++)
                 {
                     if (grid.GetCell(x, y) != 0) continue;
 
@@ -51,22 +44,22 @@ namespace Sudoku.Solvers
             return best.x == -1 ? null : best;
         }
 
-        private bool Solve(int filled)
+        private bool Solve(Grid grid, int filled)
         {
             if (filled == 81)
                 return true;
 
-            var next = FindCellWithFewestOptions();
+            (int x, int y, int mask)? next = FindCellWithFewestOptions(grid);
             if (next == null) return false;
 
-            var (x, y, mask) = next.Value;
+            (int x, int y, int mask) = next.Value;
 
-            for (int digit = 1; digit <= BoardSidelength; digit++)
+            for (int digit = 1; digit <= boardSideLength; digit++)
             {
                 if ((mask & 1 << (digit - 1)) == 0) continue;
 
                 grid.SetCell(x, y, digit);
-                if (Solve(filled + 1)) return true;
+                if (Solve(grid, filled + 1)) return true;
                 grid.ClearCell(x, y); // Backtrack
             }
 
