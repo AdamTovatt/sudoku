@@ -233,6 +233,44 @@ namespace SudokuTests
         }
 
         [TestMethod]
+        public void SolveWithMVRSolver2()
+        {
+            const string gridData1 = "...1............1...................1....................................1.......";
+            const string gridData2 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
+
+            Grid grid1 = Grid.CreateFromString(gridData1);
+            Grid grid2 = Grid.CreateFromString(gridData2);
+
+            bool didSolve1 = Solver.SolveWith(grid1, Solver.MVRAlgorithm2);
+
+            Assert.IsTrue(didSolve1, "Solving should return true");
+
+            bool isSolved1 = grid1.IsSolved(out InvalidCellInformation? invalidCellInformation);
+
+            Assert.IsTrue(isSolved1, invalidCellInformation?.ToString());
+            Assert.IsTrue(Solver.SolveWith(grid2, Solver.MVRAlgorithm2));
+        }
+
+        [TestMethod]
+        public void SolveWithAssociatedAlgorithm()
+        {
+            const string gridData1 = "...1............1...................1....................................1.......";
+            const string gridData2 = ".9.....8.5......96......4..6..34....9......2.2...6..17.1....8...6..17..97...95...";
+
+            Grid grid1 = Grid.CreateFromString(gridData1);
+            Grid grid2 = Grid.CreateFromString(gridData2);
+
+            bool didSolve1 = Solver.SolveWith(grid1, Solver.LoadAssociatedAlgorithm);
+
+            Assert.IsTrue(didSolve1, "Solving should return true");
+
+            bool isSolved1 = grid1.IsSolved(out InvalidCellInformation? invalidCellInformation);
+
+            Assert.IsTrue(isSolved1, invalidCellInformation?.ToString());
+            Assert.IsTrue(Solver.SolveWith(grid2, Solver.LoadAssociatedAlgorithm));
+        }
+
+        [TestMethod]
         public void GetIsValid()
         {
             const string stringData = ".................................................................................";

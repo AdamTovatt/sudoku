@@ -22,14 +22,20 @@ class Program
 
     static void Main()
     {
-        Console.WriteLine("*** Brute force algorithm");
-        MeasureAlgorithm(Solver.BruteForceAlgorithm, 100);
+        /*Console.WriteLine("*** Brute force algorithm");
+        MeasureAlgorithm(Solver.BruteForceAlgorithm, 10);
 
         Console.WriteLine("*** Bit algorithm");
-        MeasureAlgorithm(Solver.BitAlgorithm, 100);
+        MeasureAlgorithm(Solver.BitAlgorithm, 10);*/
 
         Console.WriteLine("*** MVR algorithm");
-        MeasureAlgorithm(Solver.MVRAlgorithm, 1000);
+        MeasureAlgorithm(Solver.MVRAlgorithm, 50000);
+
+        Console.WriteLine("*** MVR algorithm 2");
+        MeasureAlgorithm(Solver.MVRAlgorithm2, 50000);
+
+        /*Console.WriteLine("*** Associated algorithm");
+        MeasureAlgorithm(Solver.LoadAssociatedAlgorithm, 10000);*/
     }
 
     public static void MeasureAlgorithm(ISolvingAlgorithm algorithm, int repetitions)

@@ -7,12 +7,16 @@ namespace Sudoku
         public static ISolvingAlgorithm BruteForceAlgorithm { get; private set; }
         public static ISolvingAlgorithm BitAlgorithm { get; private set; }
         public static ISolvingAlgorithm MVRAlgorithm { get; private set; }
+        public static ISolvingAlgorithm MVRAlgorithm2 { get; private set; }
+        public static ISolvingAlgorithm LoadAssociatedAlgorithm { get; private set; }
 
         static Solver()
         {
             BruteForceAlgorithm = new BruteForceAlgorithm();
             BitAlgorithm = new BitAlgorithm();
             MVRAlgorithm = new MVRAlgorithm();
+            MVRAlgorithm2 = new MVRAlgorithm2();
+            LoadAssociatedAlgorithm = new LoadAssociatedAlgorithm();
         }
 
         public static bool SolveWith(Grid gridToSolve, ISolvingAlgorithm algorithmToSolveWith)
