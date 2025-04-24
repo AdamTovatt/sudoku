@@ -7,48 +7,38 @@ namespace SudokuTests
     public class SudokuPuzzleProviderTests
     {
         [TestMethod]
-        public void GetFromCsvPuzzleProvider()
+        public void GetFromEmbeddedResource()
         {
-            using (ISudokuPuzzleProvider provider = CsvStreamPuzzleProvider.CreateWithStream(File.OpenRead("C:\\users\\adam\\desktop\\sudoku-3m.csv")))
+            using (ISudokuPuzzleProvider provider = EmbeddedResourcesCsvStreamPuzzleProvider.Create())
             {
-                Dictionary<PuzzleDifficulty, List<SudokuPuzzle>> puzzlesByDifficulty = new Dictionary<PuzzleDifficulty, List<SudokuPuzzle>>();
-                SudokuPuzzle? currentPuzzle;
+                SudokuPuzzle? easyPuzzle = provider.GetNext(PuzzleDifficulty.Easy);
+                Assert.IsNotNull(easyPuzzle);
+                Assert.AreEqual(PuzzleDifficulty.Easy, easyPuzzle.Difficulty);
 
+                SudokuPuzzle? mediumPuzzle = provider.GetNext(PuzzleDifficulty.Medium);
+                Assert.IsNotNull(mediumPuzzle);
+                Assert.AreEqual(PuzzleDifficulty.Medium, mediumPuzzle.Difficulty);
+
+                SudokuPuzzle? hardPuzzle = provider.GetNext(PuzzleDifficulty.Hard);
+                Assert.IsNotNull(hardPuzzle);
+                Assert.AreEqual(PuzzleDifficulty.Hard, hardPuzzle.Difficulty);
+
+                SudokuPuzzle? expertPuzzle = provider.GetNext(PuzzleDifficulty.Expert);
+                Assert.IsNotNull(expertPuzzle);
+                Assert.AreEqual(PuzzleDifficulty.Expert, expertPuzzle.Difficulty);
+
+                SudokuPuzzle? first = provider.GetNext();
+                Assert.IsNotNull(first);
+
+                SudokuPuzzle? second;
                 do
                 {
-                    currentPuzzle = provider.GetNext();
-
-                    if (currentPuzzle != null)
-                    {
-                        if (!puzzlesByDifficulty.TryGetValue(currentPuzzle.Difficulty, out List<SudokuPuzzle>? list))
-                        {
-                            list = new List<SudokuPuzzle>();
-                            puzzlesByDifficulty[currentPuzzle.Difficulty] = list;
-                        }
-
-                        if (list.Count < 50000)
-                        {
-                            list.Add(currentPuzzle);
-                        }
-
-                        if (puzzlesByDifficulty.All(x => x.Value.Count == 50000))
-                            break;
-                    }
+                    second = provider.GetNext();
                 }
-                while (currentPuzzle != null);
+                while (second != null && second.Difficulty == first!.Difficulty);
 
-                foreach (KeyValuePair<PuzzleDifficulty, List<SudokuPuzzle>> keyValuePair in puzzlesByDifficulty)
-                {
-                    string fileName = $"sudoku-9x9-{keyValuePair.Key.ToString().ToLower()}.csv";
-
-                    using StreamWriter writer = new StreamWriter(fileName);
-                    writer.WriteLine(SudokuPuzzle.GetCsvHeader());
-
-                    foreach (SudokuPuzzle puzzle in keyValuePair.Value)
-                    {
-                        writer.WriteLine(puzzle.ToString());
-                    }
-                }
+                Assert.IsNotNull(second);
+                Assert.AreNotEqual(first!.Difficulty, second!.Difficulty);
             }
         }
     }

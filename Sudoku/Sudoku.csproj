@@ -7,4 +7,30 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Resources\SudokuPuzzles\sudoku-9x9-easy.csv" />
+    <None Remove="Resources\SudokuPuzzles\sudoku-9x9-expert.csv" />
+    <None Remove="Resources\SudokuPuzzles\sudoku-9x9-hard.csv" />
+    <None Remove="Resources\SudokuPuzzles\sudoku-9x9-medium.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\SudokuPuzzles\sudoku-9x9-easy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\SudokuPuzzles\sudoku-9x9-expert.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\SudokuPuzzles\sudoku-9x9-hard.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\SudokuPuzzles\sudoku-9x9-medium.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.4" />
+  </ItemGroup>
+
 </Project>
