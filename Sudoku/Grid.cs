@@ -121,6 +121,8 @@ namespace Sudoku
         {
             int value = grid[x, y];
 
+            if (value == 0) return;
+
             // Clear the cell
             grid[x, y] = 0;
 
