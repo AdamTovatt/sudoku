@@ -59,7 +59,7 @@ class Program
             for (int repetition = 0; repetition < repetitions; repetition++)
             {
                 Grid currentGrid = Grid.CreateFromString(gridStrings[grid]);
-                bool solved = Solver.SolveWith(currentGrid, algorithm);
+                bool solved = Solver.Solve(currentGrid, algorithm);
 
                 if (repetition == repetitions - 1 && solved)
                 {

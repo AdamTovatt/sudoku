@@ -83,5 +83,26 @@ namespace SudokuTests
 
             return (ISolvingAlgorithm)Activator.CreateInstance(type)!;
         }
+
+        [TestMethod]
+        public void GetAvailableSolvers()
+        {
+            List<Type> solverTypes = Solver.GetAvailableSolvers();
+
+            foreach (Type type in solverTypes)
+            {
+                Assert.IsTrue(typeof(ISolvingAlgorithm).IsAssignableFrom(type));
+                Assert.IsFalse(type.IsAbstract);
+                Assert.IsTrue(type.IsClass);
+                Assert.IsTrue(type.IsPublic);
+            }
+
+            // Optional: assert that known solvers are included
+            CollectionAssert.Contains(solverTypes, typeof(BitAlgorithm));
+            CollectionAssert.Contains(solverTypes, typeof(BruteForceAlgorithm));
+            CollectionAssert.Contains(solverTypes, typeof(MVRAlgorithm));
+            CollectionAssert.Contains(solverTypes, typeof(MVRAlgorithm2));
+            CollectionAssert.Contains(solverTypes, typeof(TempBitAlgorithm));
+        }
     }
 }
