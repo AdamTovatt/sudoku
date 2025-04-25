@@ -12,5 +12,8 @@ namespace SudokuCli.Cli
 
         [Option('o', "output", Required = false, Default = "", MetaValue = "OUTPUT", HelpText = "The output directory to create the output files in. Output files will override existing ones that were created from the same parameters. The default value is just an empty string which will result in a path relative to the executing application, meaning the output will be in the same directory as the executing file is in.")]
         public string? OutputBasePath { get; set; }
+
+        [Option('d', "difficulty", Required = false, Default = "Unspecified", MetaValue = "DIFFICULTY", HelpText = "The difficulty of the puzzles to solve. Valid values are: Unspecified, Easy, Medium, Hard, Expert.")]
+        public DifficultyOption? DifficultyOption { get; set; }
     }
 }

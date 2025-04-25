@@ -39,7 +39,7 @@ namespace SudokuCli
             List<SudokuPuzzle> puzzles = new List<SudokuPuzzle>();
             for (int i = 0; i < arguments.Count; i++)
             {
-                SudokuPuzzle? puzzle = puzzleProvider.GetNext();
+                SudokuPuzzle? puzzle = puzzleProvider.GetNext(arguments.Difficulty);
 
                 if (puzzle == null)
                     throw new InvalidDataException($"Encountered unexpected end of puzzle stream");
@@ -52,6 +52,7 @@ namespace SudokuCli
             List<DataTableHeaderCell> headerCells = new List<DataTableHeaderCell>()
             {
                 new DataTableHeaderCell("index", typeof(int)),
+                new DataTableHeaderCell("difficulty", typeof(PuzzleDifficulty)),
                 new DataTableHeaderCell("elapsed time (ms)", typeof(long)),
                 new DataTableHeaderCell("memory used (bytes)", typeof(long)),
             };
@@ -64,7 +65,7 @@ namespace SudokuCli
                 Console.WriteLine("Solved: " + i);
             }
 
-            File.WriteAllText(Path.Combine(arguments.OutputBasePath, $"{solvingAlgorithm.GetType().Name}-{arguments.Count}.csv"), dataTable.ToCsv());
+            File.WriteAllText(Path.Combine(arguments.OutputBasePath, $"{solvingAlgorithm.GetType().Name}-{arguments.Difficulty}-{arguments.Count}.csv"), dataTable.ToCsv());
 
             if (directLaunch)
             {
@@ -93,6 +94,7 @@ namespace SudokuCli
             List<object?> values = new List<object?>()
             {
                 index,
+                puzzle.Difficulty,
                 stopwatch.ElapsedMilliseconds,
                 memoryUsed
             };

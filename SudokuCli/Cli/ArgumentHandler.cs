@@ -3,6 +3,7 @@ using CommandLine.Text;
 using Sudoku.Solvers;
 using Sudoku;
 using System.Text;
+using Sudoku.Data.Models;
 
 namespace SudokuCli.Cli
 {
@@ -49,11 +50,25 @@ namespace SudokuCli.Cli
             if (options.Count < 0 || options.Count > 50000)
             {
                 DisplayError(result, $"Invalid count value. Min value is 1. Max value is 50 000. Test data doesn't contain more than 50 000 puzzles.");
+                return null;
+            }
+
+            if (options.DifficultyOption == null || options.DifficultyOption.GetDifficulty() == null)
+            {
+                DisplayError(result, $"Invalid difficulty option provided: \"{options.DifficultyOption?.Name}\"");
+                return null;
             }
 
             ISolvingAlgorithm solvingAlgorithm = options.AlgorithmOption.CreateAlgorithmInstance();
+            PuzzleDifficulty? difficulty = options.DifficultyOption.GetDifficulty();
 
-            return new InputArguments(solvingAlgorithm, options.Count, options.OutputBasePath);
+            if (difficulty == null)
+            {
+                DisplayError(result, $"Invalid difficulty option provided: \"{options.DifficultyOption?.Name}\"");
+                return null;
+            }
+
+            return new InputArguments(solvingAlgorithm, options.Count, options.OutputBasePath, difficulty.Value);
         }
 
         private static void DisplayError<T>(ParserResult<T> result, string errorMessage)
