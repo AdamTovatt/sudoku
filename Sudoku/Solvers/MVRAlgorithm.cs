@@ -2,9 +2,17 @@ using System.Numerics;
 
 namespace Sudoku.Solvers
 {
-    // The main differentiating factor of the MVR solver is that
-    // within the recursive algorithm, it always chooses the square
-    // with the least possibilities as the next square.
+    /// <summary>
+    /// Essentially a brute force solver, except that it doesn't use
+    /// IsValid() for each possible digit, but instead gets a bitmask
+    /// with all possible valid digits for a given position. This in
+    /// itself does not make the recursion all that much faster,
+    /// since the engine is still quite 'dumb'.
+    /// The main differentiating factor that makes it the MVR solver 
+    /// faster is that within the recursive algorithm, it always 
+    /// chooses the square with the least possibilities (given a
+    /// set of rules) as the next square to search.
+    /// </summary>  // gets a bitmask with all valid digits.
     public class MVRAlgorithm : ISolvingAlgorithm
     {
         private const int boardSideLength = 9;
@@ -16,6 +24,12 @@ namespace Sudoku.Solvers
             return Solve(grid, grid.DigitCount);
         }
 
+        /// <summary>
+        /// Finds the cell in the grid that has the fewest possible valid
+        /// digits that can be placed according to sudoku's rule zero.
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <returns></returns>
         private (int x, int y, int mask)? FindCellWithFewestOptions(Grid grid)
         {
             int minimumOptions = boardSideLength + 1;
@@ -44,6 +58,13 @@ namespace Sudoku.Solvers
             return best.x == -1 ? null : best;
         }
 
+        /// <summary>
+        /// A recursive method that goes over all empty squares in the
+        /// sudoku board, trying digits until a solution is found.
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="filled"></param>
+        /// <returns></returns>
         private bool Solve(Grid grid, int filled)
         {
             if (filled == 81)

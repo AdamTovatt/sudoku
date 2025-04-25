@@ -1,5 +1,9 @@
 namespace Sudoku.Solvers
 {
+    /// <summary>
+    /// A standard brute force solver for sudoku that uses the
+    /// Grid class to represent the sudoku board.
+    /// </summary>
     public class BruteForceAlgorithm : ISolvingAlgorithm
     {
         public bool SolveGrid(Grid grid)
@@ -7,6 +11,15 @@ namespace Sudoku.Solvers
             return Solve(grid, 0, 0);
         }
 
+        /// <summary>
+        /// A recursive algorithm that goes over all squares in the sudoku
+        /// one by one, testing digit after digit in each square until
+        /// it stumbles upon a solution that works.
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="row"></param>
+        /// <param name="column"></param>
+        /// <returns></returns>
         private bool Solve(Grid grid, int row, int column)
         {
             if (column == grid.SideLength) { column = 0; row++; }

@@ -2,9 +2,12 @@ using System.Numerics;
 
 namespace Sudoku.Solvers
 {
-    // The main differentiating factor of the MVR solver is that
-    // within the recursive algorithm, it always chooses the square
-    // with the least possibilities as the next square.
+    /// <summary>
+    /// The MVRAlgorithm2 has more rules when finding the square
+    /// that has the least possible options for digits. In addition
+    /// to checking valid digits it also looks for 'hidden singles',
+    /// which are digits that can be placed guaranteed.
+    /// </summary>
     public class MVRAlgorithm2 : ISolvingAlgorithm
     {
         private const int boardSideLength = 9;
@@ -66,6 +69,13 @@ namespace Sudoku.Solvers
             return best.x == -1 ? null : best;
         }
 
+        /// <summary>
+        /// A recursive method that goes over all empty squares in the
+        /// sudoku board, trying digits until a solution is found.
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="filled"></param>
+        /// <returns></returns>
         private bool Solve(Grid grid, int filled)
         {
             if (filled == 81)

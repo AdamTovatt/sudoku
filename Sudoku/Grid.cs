@@ -124,6 +124,8 @@ namespace Sudoku
             // Clear the cell
             grid[x, y] = 0;
 
+            DigitCount--;
+
             int mask = ~(1 << (value - 1));
 
             // Clear the bit in the bitmasks
