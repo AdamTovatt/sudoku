@@ -53,6 +53,7 @@ namespace SudokuCli
             {
                 new DataTableHeaderCell("index", typeof(int)),
                 new DataTableHeaderCell("elapsed time (ms)", typeof(long)),
+                new DataTableHeaderCell("memory used (bytes)", typeof(long)),
             };
 
             DataTable dataTable = new DataTable(headerCells);
@@ -76,14 +77,24 @@ namespace SudokuCli
         {
             Grid startingGrid = puzzle.StartingGrid;
 
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            long beforeMemory = GC.GetTotalMemory(false);
+
             Stopwatch stopwatch = Stopwatch.StartNew();
             solvingAlgorithm.SolveGrid(startingGrid);
             stopwatch.Stop();
 
+            long afterMemory = GC.GetTotalMemory(false);
+            long memoryUsed = afterMemory - beforeMemory;
+
             List<object?> values = new List<object?>()
             {
                 index,
-                stopwatch.ElapsedMilliseconds
+                stopwatch.ElapsedMilliseconds,
+                memoryUsed
             };
 
             return new DataTableRow(values);
