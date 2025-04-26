@@ -9,11 +9,9 @@ namespace SudokuTests
     public class SolverTests
     {
         [DataTestMethod]
-        [DataRow(typeof(BitAlgorithm))]
         [DataRow(typeof(BruteForceAlgorithm))]
         [DataRow(typeof(MVRAlgorithm))]
         [DataRow(typeof(MVRAlgorithm2))]
-        // [DataRow(typeof(TempBitAlgorithm))] //              <---- avkommentera denna rad för att se att denna algoritm inte fungerar
         public void SolveWith(Type typeOfAlgorithm)
         {
             ISolvingAlgorithm solvingAlgorithm = CreateAlgorithmInstance(typeOfAlgorithm);
@@ -98,11 +96,9 @@ namespace SudokuTests
             }
 
             // Optional: assert that known solvers are included
-            CollectionAssert.Contains(solverTypes, typeof(BitAlgorithm));
             CollectionAssert.Contains(solverTypes, typeof(BruteForceAlgorithm));
             CollectionAssert.Contains(solverTypes, typeof(MVRAlgorithm));
             CollectionAssert.Contains(solverTypes, typeof(MVRAlgorithm2));
-            CollectionAssert.Contains(solverTypes, typeof(TempBitAlgorithm));
         }
     }
 }
