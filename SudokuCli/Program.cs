@@ -53,7 +53,7 @@ namespace SudokuCli
             {
                 new DataTableHeaderCell("index", typeof(int)),
                 new DataTableHeaderCell("difficulty", typeof(PuzzleDifficulty)),
-                new DataTableHeaderCell("elapsed time (ms)", typeof(long)),
+                new DataTableHeaderCell("elapsed time (ns)", typeof(double)),
                 new DataTableHeaderCell("memory used (bytes)", typeof(long)),
             };
 
@@ -95,7 +95,7 @@ namespace SudokuCli
             {
                 index,
                 puzzle.Difficulty,
-                stopwatch.ElapsedMilliseconds,
+                stopwatch.Elapsed.TotalNanoseconds,
                 memoryUsed
             };
 

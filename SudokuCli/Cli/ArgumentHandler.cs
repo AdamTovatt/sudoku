@@ -74,8 +74,13 @@ namespace SudokuCli.Cli
         private static void DisplayError<T>(ParserResult<T> result, string errorMessage)
         {
             Console.WriteLine($"ERROR(S): {errorMessage}\n");
-            HelpText helpText = HelpText.AutoBuild(result);
-            Console.WriteLine(helpText);
+
+            try
+            {
+                HelpText helpText = HelpText.AutoBuild(result);
+                Console.WriteLine(helpText);
+            }
+            catch { }
         }
 
         private static void DisplayHelp<T>(ParserResult<T> result, IEnumerable<Error> errors)
