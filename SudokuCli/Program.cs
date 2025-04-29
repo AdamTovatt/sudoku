@@ -62,7 +62,7 @@ namespace SudokuCli
             for (int i = 0; i < arguments.Count; i++)
             {
                 dataTable.AddRow(MeasureSolveResourceUsage(i, solvingAlgorithm, puzzles[i]));
-                Console.WriteLine("Solved: " + i);
+                //Console.WriteLine("Solved: " + i);
             }
 
             File.WriteAllText(Path.Combine(arguments.OutputBasePath, $"{solvingAlgorithm.GetType().Name}-{arguments.Difficulty}-{arguments.Count}.csv"), dataTable.ToCsv());
