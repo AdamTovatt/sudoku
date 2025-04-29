@@ -5,3 +5,7 @@
 /SudokuTests/obj/*
 /SudokuCli/bin/*
 /SudokuCli/obj/*
+
+# Remove data irrelevant for version control
+RData/data/
+Combined_Report.pdf
