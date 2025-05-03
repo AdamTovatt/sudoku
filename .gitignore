@@ -9,3 +9,5 @@
 # Remove data irrelevant for version control
 RData/data/
 Combined_Report.pdf
+r_libs/
+temp.R
