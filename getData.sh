@@ -48,7 +48,7 @@ readIterations () {
 
 # Get the data!!!
 runSudoku() {
-	dotnet run --project ./SudokuCli/SudokuCli.csproj -- --algorithm $1 --difficulty $2 --count $3 --output $4
+	dotnet run --no-build --project ./SudokuCli/SudokuCli.csproj -- --algorithm $1 --difficulty $2 --count $3 --output $4
 }
 
 runAllSudoku() {
