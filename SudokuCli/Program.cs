@@ -14,7 +14,7 @@ namespace SudokuCli
     {
         public static void Main(string[] args)
         {
-            ResourceHelper.Initialize(Assembly.GetAssembly(typeof(Solver))); // initialize resource helper so it can load embedded resources
+            ResourceHelper.Initialize(Assembly.GetAssembly(typeof(Solver)));
 
             bool directLaunch = args.Length == 0;
             if (directLaunch) args = Console.ReadLine()!.Split(" ");
@@ -24,26 +24,18 @@ namespace SudokuCli
             if (arguments == null)
             {
                 Console.WriteLine("\nInvalid input resulted in early exit of the process.");
-
-                if (directLaunch)
-                {
-                    Console.WriteLine("Press any key to exit...");
-                    Console.ReadKey();
-                }
-
+                if (directLaunch) Console.ReadKey();
                 return;
             }
 
-            EmbeddedResourcesCsvStreamPuzzleProvider puzzleProvider = EmbeddedResourcesCsvStreamPuzzleProvider.Create();
+            // Preload ALL puzzles into memory at startup
+            var puzzleProvider = PreloadAllPuzzlesIntoMemory();
 
             List<SudokuPuzzle> puzzles = new List<SudokuPuzzle>();
             for (int i = 0; i < arguments.Count; i++)
             {
                 SudokuPuzzle? puzzle = puzzleProvider.GetNext(arguments.Difficulty);
-
-                if (puzzle == null)
-                    throw new InvalidDataException($"Encountered unexpected end of puzzle stream");
-
+                if (puzzle == null) break; // Exit if we've exhausted puzzles
                 puzzles.Add(puzzle);
             }
 
@@ -74,22 +66,47 @@ namespace SudokuCli
             }
         }
 
+        private static InMemoryPuzzleProvider PreloadAllPuzzlesIntoMemory()
+        {
+            var provider = new InMemoryPuzzleProvider();
+
+            // Load puzzles from all difficulty streams
+            PreloadDifficulty(provider, Resource.SudokuPuzzles.Easy);
+            PreloadDifficulty(provider, Resource.SudokuPuzzles.Medium);
+            PreloadDifficulty(provider, Resource.SudokuPuzzles.Hard);
+            PreloadDifficulty(provider, Resource.SudokuPuzzles.Expert);
+
+            return provider;
+        }
+
+        private static void PreloadDifficulty(InMemoryPuzzleProvider provider, Resource resource)
+        {
+            using var stream = ResourceHelper.Instance.GetFileStream(resource);
+            using var csvProvider = CsvStreamPuzzleProvider.CreateWithStream(stream);
+
+            SudokuPuzzle? puzzle;
+            while ((puzzle = csvProvider.GetNext()) != null)
+            {
+                provider.AddPuzzle(puzzle);
+            }
+        }
         private static DataTableRow MeasureSolveResourceUsage(int index, ISolvingAlgorithm solvingAlgorithm, SudokuPuzzle puzzle)
         {
             Grid startingGrid = puzzle.StartingGrid;
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            // Removed GC calls
+            //GC.Collect();
+            //GC.WaitForPendingFinalizers();
+            //GC.Collect();
 
-            long beforeMemory = GC.GetTotalMemory(false);
+            //long beforeMemory = GC.GetTotalMemory(false);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             solvingAlgorithm.SolveGrid(startingGrid);
             stopwatch.Stop();
 
-            long afterMemory = GC.GetTotalMemory(false);
-            long memoryUsed = afterMemory - beforeMemory;
+            //long afterMemory = GC.GetTotalMemory(false);
+            long memoryUsed = 0;
 
             List<object?> values = new List<object?>()
             {
