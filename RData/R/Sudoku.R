@@ -207,7 +207,7 @@ generate_bar_charts <- function(filtered_data) {
     text(
       x = bp,
       y = plot_data$elapsed_time_ms,
-      labels = round(plot_data$elapsed_time_ms, 1),
+      labels = round(plot_data$elapsed_time_ms, 3),
       pos = 3,
       cex = 0.8
     )
