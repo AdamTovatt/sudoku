@@ -22,6 +22,7 @@ namespace Sudoku
         /// Gets an alternative implementation of the MVR solving algorithm.
         /// </summary>
         public static ISolvingAlgorithm MVRAlgorithm2 { get; private set; }
+        public static ISolvingAlgorithm PreprocessAlgorithm { get; private set; }
 
         /// <summary>
         /// Static constructor to initialize the solver algorithm instances.
@@ -31,6 +32,7 @@ namespace Sudoku
             BruteForceAlgorithm = new BruteForceAlgorithm();
             MVRAlgorithm = new MVRAlgorithm();
             MVRAlgorithm2 = new MVRAlgorithm2();
+            PreprocessAlgorithm = new PreprocessAlgorithm();
         }
 
         /// <summary>
