@@ -25,6 +25,11 @@ namespace Sudoku
         public static ISolvingAlgorithm PreprocessAlgorithm { get; private set; }
 
         /// <summary>
+        /// Gets an algorithm that uses Rule 0 to eliminate digits.
+        /// </summary>
+        public static ISolvingAlgorithm PreprocessAlgorithm { get; private set; }
+
+        /// <summary>
         /// Static constructor to initialize the solver algorithm instances.
         /// </summary>
         static Solver()
