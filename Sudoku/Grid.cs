@@ -110,7 +110,7 @@ namespace Sudoku
 
         public bool IsValid(int x, int y, int digit)
         {
-            int squareIndex = (y / 3) * 3 + (x / 3);
+            int squareIndex = (x / 3) + y / 3 * 3;
             int mask = 1 << (digit - 1);
             return (rows[y] & mask) == 0 &&
                   (columns[x] & mask) == 0 &&
@@ -153,24 +153,58 @@ namespace Sudoku
 
         public bool IsSolved(out InvalidCellInformation? invalidCellInformation)
         {
+            const int FullMask = 0x1FF;
+
+            // check all rows
+            for (int y = 0; y < SideLength; y++)
+            {
+                if (rows[y] != FullMask)
+                {
+                    invalidCellInformation = new InvalidCellInformation(0, y, -1); // -1 indicates no specific value
+                    return false;
+                }
+            }
+
+            // check all columns
+            for (int x = 0; x < SideLength; x++)
+            {
+                if (columns[x] != FullMask)
+                {
+                    invalidCellInformation = new InvalidCellInformation(x, 0, -1);
+                    return false;
+                }
+            }
+
+            // check all squares
+            for (int s = 0; s < SideLength; s++)
+            {
+                if (squares[s] != FullMask)
+                {
+                    int x = (s % 3) * 3;
+                    int y = (s / 3) * 3;
+                    invalidCellInformation = new InvalidCellInformation(x, y, -1);
+                    return false;
+                }
+            }
+
             for (int x = 0; x < SideLength; x++)
             {
                 for (int y = 0; y < SideLength; y++)
                 {
                     int cellValue = GetCell(x, y);
-
-                    // TODO: Optimize this so it doesn't have to ClearCell and then SetCell
-                    // each time. Don't change IsValid, since IsValid is more important that
-                    // it's fast.
-                    ClearCell(x, y);
-
-                    if (cellValue == 0 || !IsValid(x, y, cellValue))
+                    if (cellValue == 0)
                     {
-                        SetCell(x, y, cellValue);
-                        invalidCellInformation = new InvalidCellInformation(x, y, cellValue);
+                        invalidCellInformation = new InvalidCellInformation(x, y, 0);
                         return false;
                     }
 
+                    ClearCell(x, y);
+                    if (!IsValid(x, y, cellValue))
+                    {
+                        invalidCellInformation = new InvalidCellInformation(x, y, cellValue);
+                        SetCell(x, y, cellValue); // restore before returning
+                        return false;
+                    }
                     SetCell(x, y, cellValue);
                 }
             }

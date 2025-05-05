@@ -24,6 +24,11 @@ namespace Sudoku
         public static ISolvingAlgorithm MVRAlgorithm2 { get; private set; }
 
         /// <summary>
+        /// Gets an algorithm that uses Rule 0 to eliminate digits.
+        /// </summary>
+        public static ISolvingAlgorithm PreprocessAlgorithm { get; private set; }
+
+        /// <summary>
         /// Static constructor to initialize the solver algorithm instances.
         /// </summary>
         static Solver()
@@ -31,6 +36,7 @@ namespace Sudoku
             BruteForceAlgorithm = new BruteForceAlgorithm();
             MVRAlgorithm = new MVRAlgorithm();
             MVRAlgorithm2 = new MVRAlgorithm2();
+            PreprocessAlgorithm = new PreprocessAlgorithm();
         }
 
         /// <summary>

@@ -1,74 +1,73 @@
 #!/usr/bin/env bash
 
-# Variables
+# Constants
 Rdir="./RData/R/"
-BFdir="./RData/data/raw-data/BruteForceAlgorithm/"
-MVR1dir="./RData/data/raw-data/MVRAlgorithm/"
-MVR2dir="./RData/data/raw-data/MVRAlgorithm2/"
+baseDataDir="./RData/data/raw-data"
+graphDir="./RData/data/graphs"
 
-# Create dirs
+# Define solvers and initialize iteration map
+declare -A solvers=(
+  ["BruteForceAlgorithm"]="$baseDataDir/BruteForceAlgorithm"
+  ["MVRAlgorithm"]="$baseDataDir/MVRAlgorithm"
+  ["MVRAlgorithm2"]="$baseDataDir/MVRAlgorithm2"
+  ["PreprocessAlgorithm"]="$baseDataDir/PreprocessAlgorithm"
+)
+declare -A iterations
+
+# Create necessary directories
 createDirs () {
-  mkdir -p ./RData/data/raw-data/{BruteForceAlgorithm,MVRAlgorithm,MVRAlgorithm2}
-  mkdir -p ./RData/data/graphs
+  for dir in "${solvers[@]}"; do
+    mkdir -p "$dir"
+  done
+  mkdir -p "$graphDir"
   echo "Created necessary directories."
 }
 
-# Change permissions
+# Change R script permissions
 changePerms () {
-  if chmod +x ${Rdir}Sudoku.R; then
-  	echo "Changed permissions."
+  if chmod +x "${Rdir}Sudoku.R"; then
+    echo "Changed permissions."
   else
-  	echo "Permission change for SudokuR.R failed"
+    echo "Permission change for Sudoku.R failed"
   fi
 }
 
+# Prompt for number of iterations per solver
 readIterations () {
-  echo "You must choose how many times you want algorithms to be run:"
-
-  read -p "BruteforceAlgorithm: " BFits
-  while ! [[ "$BFits" =~ ^[0-9]+$ ]]; do
-      echo "Please enter a valid number."
-      read -p "BruteforceAlgorithm: " BFits
+  echo "Enter how many times you want each algorithm to run:"
+  for solver in "${!solvers[@]}"; do
+    while true; do
+      read -p "$solver: " count
+      if [[ "$count" =~ ^[0-9]+$ ]]; then
+        iterations["$solver"]=$count
+        break
+      else
+        echo "Please enter a valid number."
+      fi
+    done
   done
-
-  read -p "MVRAlgorithm: " MVR1its
-  while ! [[ "$MVR1its" =~ ^[0-9]+$ ]]; do
-      echo "Please enter a valid number."
-      read -p "BruteforceAlgorithm: " MVR1its
-  done
-
-  read -p "MVRAlgorithm2: " MVR2its
-  while ! [[ "$MVR2its" =~ ^[0-9]+$ ]]; do
-      echo "Please enter a valid number."
-      read -p "BruteforceAlgorithm: " MVR2its
-  done
-
-  export BFits MVR1its MVR2its
 }
 
-# Get the data!!!
+# Run the data collection
 runSudoku() {
-	dotnet run --no-build --project ./SudokuCli/SudokuCli.csproj -- --algorithm $1 --difficulty $2 --count $3 --output $4
+  dotnet run --no-build --project ./SudokuCli/SudokuCli.csproj -- --algorithm "$1" --difficulty "$2" --count "$3" --output "$4"
 }
 
 runAllSudoku() {
-  runSudoku BruteForceAlgorithm Easy "$BFits" $BFdir && echo "BruteforceAlgorithm Easy Success!" || echo "Failed (exit code: $?)."
-  runSudoku BruteForceAlgorithm Medium "$BFits" $BFdir && echo "BruteforceAlgorithm Medium Success!" || echo "Failed (exit code: $?)."
-  runSudoku BruteForceAlgorithm Hard "$BFits" $BFdir && echo "BruteforceAlgorithm Hard Success!" || echo "Failed (exit code: $?)."
-  runSudoku BruteForceAlgorithm Expert "$BFits" $BFdir && echo "BruteforceAlgorithm Expert Success!" || echo "Failed (exit code: $?)."
+  local difficulties=("Easy" "Medium" "Hard" "Expert")
 
-  runSudoku MVRAlgorithm Easy "$MVR1its" $MVR1dir && echo "MVRAlgorithm Easy Success!" || echo "Failed (exit code: $?)."
-  runSudoku MVRAlgorithm Medium "$MVR1its" $MVR1dir && echo "MVRAlgorithm Medium Success!" || echo "Failed (exit code: $?)."
-  runSudoku MVRAlgorithm Hard "$MVR1its" $MVR1dir && echo "MVRAlgorithm Hard Success!" || echo "Failed (exit code: $?)."
-  runSudoku MVRAlgorithm Expert "$MVR1its" $MVR1dir && echo "MVRAlgorithm Expert Success!" || echo "Failed (exit code: $?)."
-
-  runSudoku MVRAlgorithm2 Easy "$MVR2its" $MVR2dir && echo "MVRAlgorithm2 Easy Success!" || echo "Failed (exit code: $?)."
-  runSudoku MVRAlgorithm2 Medium "$MVR2its" $MVR2dir && echo "MVRAlgorithm2 Medium Success!" || echo "Failed (exit code: $?)."
-  runSudoku MVRAlgorithm2 Hard "$MVR2its" $MVR2dir && echo "MVRAlgorithm2 Hard Success!" || echo "Failed (exit code: $?)."
-  runSudoku MVRAlgorithm2 Expert "$MVR2its" $MVR2dir && echo "MVRAlgorithm2 Expert Success!" || echo "Failed (exit code: $?)."
+  for solver in "${!solvers[@]}"; do
+    for diff in "${difficulties[@]}"; do
+      count="${iterations[$solver]}"
+      outdir="${solvers[$solver]}"
+      runSudoku "$solver" "$diff" "$count" "$outdir" \
+        && echo "$solver $diff Success!" \
+        || echo "$solver $diff Failed (exit code: $?)."
+    done
+  done
 }
 
-
+# Menu
 echo "Choose an option:"
 echo "1. Only get the data"
 echo "2. Only create the graphs"
@@ -76,28 +75,28 @@ echo "3. Do both"
 read -p "Enter your choice (1/2/3): " choice
 
 case $choice in
-    1)
-        echo "Getting data..."
-        createDirs
-        readIterations
-        runAllSudoku
-        ;;
-    2)
-        echo "Drawing graphs..."
-        createDirs
-        changePerms
-        Rscript ./RData/R/Sudoku.R
-        ;;
-    3)
-        echo "Getting data and drawing graphs..."
-        createDirs
-        readIterations
-        runAllSudoku
-        Rscript ./RData/R/Sudoku.R
-        ;;
-
-    *)
-        echo "Invalid choice. Please run the script again and choose 1, 2, or 3."
-        exit 1
-        ;;
+  1)
+    echo "Getting data..."
+    createDirs
+    readIterations
+    runAllSudoku
+    ;;
+  2)
+    echo "Drawing graphs..."
+    createDirs
+    changePerms
+    Rscript "${Rdir}Sudoku.R"
+    ;;
+  3)
+    echo "Getting data and drawing graphs..."
+    createDirs
+    readIterations
+    runAllSudoku
+    changePerms
+    Rscript "${Rdir}Sudoku.R"
+    ;;
+  *)
+    echo "Invalid choice. Please run the script again and choose 1, 2, or 3."
+    exit 1
+    ;;
 esac
