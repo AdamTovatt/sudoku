@@ -101,81 +101,6 @@ report_outlier_stats <- function(original_data, filtered_data) {
 # ========================
 # Plotting Functions
 # ========================
-generate_mvr_scatter <- function(filtered_data) {
-  mvr_data <- filtered_data[
-    filtered_data$algorithm %in% c("MVRAlgorithm", "MVRAlgorithm2"),
-  ]
-  mvr_data$algorithm <- factor(
-    mvr_data$algorithm,
-    levels = c("MVRAlgorithm", "MVRAlgorithm2"),
-    labels = c("MVR1", "MVR2")
-  )
-
-  # Function to average data
-  average_data <- function(df, parts) {
-    df$group <- floor((seq_len(nrow(df)) - 1) * parts / nrow(df)) + 1
-    aggregate(
-      cbind(index, elapsed_time_ms) ~ group + filename + algorithm + difficulty,
-      data = df,
-      FUN = mean
-    )
-  }
-
-  # Process each file into 100 points
-  averaged_data <- lapply(
-    split(mvr_data, mvr_data$filename),
-    function(file_data) {
-      average_data(file_data, 100)
-    }
-  )
-  mvr_avg <- do.call(rbind, averaged_data)
-
-  for (diff_level in difficulties) {
-    plot_data <- mvr_avg[mvr_avg$difficulty == diff_level, ]
-    if (nrow(plot_data) == 0) next
-
-    colors <- ifelse(plot_data$algorithm == "MVR1", "blue", "red")
-    fname <- file.path(
-      graphs_dir,
-      paste0("MVR_Comparison_", diff_level, ".pdf")
-    )
-
-    pdf(fname, width = 10, height = 6)
-    plot(
-      plot_data$index,
-      plot_data$elapsed_time_ms,
-      col = colors,
-      pch = 19,
-      cex = 0.7,
-      main = paste("MVR Comparison -", diff_level),
-      xlab = "Puzzle Index",
-      ylab = "Time (ms)"
-    )
-
-    # Add trend lines
-    for (algo in c("MVR1", "MVR2")) {
-      algo_data <- plot_data[plot_data$algorithm == algo, ]
-      if (nrow(algo_data) > 1) {
-        model <- lm(elapsed_time_ms ~ index, data = algo_data)
-        abline(
-          model,
-          col = ifelse(algo == "MVR1", "blue", "red"),
-          lty = 2,
-          lwd = 2
-        )
-      }
-    }
-
-    legend(
-      "topright",
-      legend = c("MVR1", "MVR2"),
-      pch = 19,
-      col = c("blue", "red")
-    )
-    dev.off()
-  }
-}
-
 generate_bar_charts <- function(filtered_data) {
   # Modified to work with filtered_data dataframe directly
   avg_times <- aggregate(
@@ -241,76 +166,43 @@ generate_mvr_boxplots <- function(filtered_data) {
     labels = c("MVR1", "MVR2")
   )
 
-  for (diff_level in difficulties) {
-    plot_data <- mvr_data[mvr_data$difficulty == diff_level, ]
-    if (nrow(plot_data) == 0) next
-
-    fname <- file.path(graphs_dir, paste0("BoxPlot_", diff_level, ".pdf"))
-    pdf(fname, width = 8, height = 6)
-    boxplot(
-      elapsed_time_ms ~ algorithm,
-      data = plot_data,
-      col = c("blue", "red"),
-      main = paste("MVR Box Plot -", diff_level),
-      xlab = "Algorithm",
-      ylab = "Time (ms)"
-    )
-    dev.off()
-  }
-}
-
-generate_easy_full_scatter <- function(filtered_data) {
-  easy_data <- filtered_data[
-    filtered_data$difficulty == "Easy" &
-      filtered_data$algorithm %in%
-        c("MVRAlgorithm", "MVRAlgorithm2", "BruteForceAlgorithm"),
-  ]
-
-  easy_data$algorithm <- factor(
-    easy_data$algorithm,
-    levels = c("MVRAlgorithm", "MVRAlgorithm2", "BruteForceAlgorithm"),
-    labels = c("MVR1", "MVR2", "BF")
+  fname <- file.path(graphs_dir, "BoxPlot_AllDifficulties.pdf")
+  pdf(fname, width = 12, height = 6)
+  boxplot(
+    elapsed_time_ms ~ interaction(algorithm, difficulty),
+    data = mvr_data,
+    col = c("blue", "red"),
+    main = "MVR Box Plot - All Difficulties",
+    xlab = "Difficulty",
+    ylab = "Time (ms)",
+    las = 1,
+    xaxt = "n" # Suppress default x-axis labels
   )
 
-  for (algo in c("MVR1", "MVR2", "BF")) {
-    plot_data <- easy_data[easy_data$algorithm == algo, ]
-    if (nrow(plot_data) == 0) next
+  # Add custom x-axis labels
+  difficulty_positions <- seq(
+    1.5,
+    by = 2,
+    length.out = length(levels(mvr_data$difficulty))
+  )
+  axis(
+    side = 1,
+    at = difficulty_positions,
+    labels = levels(mvr_data$difficulty),
+    tick = FALSE,
+    line = 0
+  )
 
-    color <- switch(algo, "MVR1" = "blue", "MVR2" = "red", "BF" = "green")
-    fname <- file.path(graphs_dir, paste0(algo, "_Easy_FullScatter.pdf"))
-
-    pdf(fname, width = 10, height = 6)
-    plot(
-      plot_data$index,
-      plot_data$elapsed_time_ms,
-      col = color,
-      pch = 19,
-      cex = 0.5,
-      main = paste(algo, "Full Data - Easy Difficulty"),
-      xlab = "Puzzle Index",
-      ylab = "Time (ms)"
-    )
-
-    # Add trend line
-    if (nrow(plot_data) > 1) {
-      abline(
-        lm(elapsed_time_ms ~ index, plot_data),
-        col = "black",
-        lty = 2,
-        lwd = 1.5
-      )
-    }
-
-    legend(
-      "topright",
-      legend = c("Data Points", "Trend Line"),
-      col = c(color, "black"),
-      pch = c(19, NA),
-      lty = c(NA, 2)
-    )
-    dev.off()
-  }
+  # Add legend
+  legend(
+    "topright",
+    legend = c("MVR1 (Blue)", "MVR2 (Red)"),
+    fill = c("blue", "red"),
+    bty = "n"
+  )
+  dev.off()
 }
+
 
 # ========================
 # Combined Report
@@ -330,40 +222,6 @@ generate_combined_report <- function() {
   }
 }
 
-generate_bell_curve <- function(filtered_data) {
-  # Create histogram data
-  h <- hist(filtered_data$elapsed_time_ms, plot = FALSE)
-
-  # Calculate normal curve parameters
-  x <- filtered_data$elapsed_time_ms
-  xfit <- seq(min(x), max(x), length = 100)
-  yfit <- dnorm(xfit, mean = mean(x), sd = sd(x))
-
-  # Scale normal curve to histogram
-  yfit <- yfit * diff(h$mids[1:2]) * length(x)
-
-  # Create plot
-  pdf(file.path(graphs_dir, "Bell_Curve.pdf"), width = 8, height = 6)
-  hist(
-    x,
-    col = "lightblue",
-    main = "Execution Time Distribution with Bell Curve",
-    xlab = "Time (ms)",
-    ylab = "Frequency",
-    probability = FALSE
-  ) # Keep raw counts
-
-  lines(xfit, yfit, col = "red", lwd = 2)
-  legend(
-    "topright",
-    legend = c("Data", "Normal Curve"),
-    col = c("lightblue", "red"),
-    lty = c(1, 1),
-    lwd = c(10, 2)
-  )
-  dev.off()
-}
-
 # ========================
 # Execution Pipeline
 # ========================
@@ -375,11 +233,8 @@ filtered_data <- processed_data$filtered
 report_outlier_stats(processed_data$original, filtered_data)
 
 # Generate individual plots
-generate_mvr_scatter(filtered_data)
 generate_bar_charts(filtered_data)
 generate_mvr_boxplots(filtered_data)
-generate_easy_full_scatter(filtered_data)
-generate_bell_curve(filtered_data)
 
 # Combine existing plots into report
 generate_combined_report()
