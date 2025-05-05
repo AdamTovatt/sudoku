@@ -12,6 +12,7 @@ namespace SudokuTests
         [DataRow(typeof(BruteForceAlgorithm))]
         [DataRow(typeof(MVRAlgorithm))]
         [DataRow(typeof(MVRAlgorithm2))]
+        [DataRow(typeof(PreprocessAlgorithm))]
         public void SolveWith(Type typeOfAlgorithm)
         {
             ISolvingAlgorithm solvingAlgorithm = CreateAlgorithmInstance(typeOfAlgorithm);
