@@ -22,7 +22,6 @@ namespace Sudoku
         /// Gets an alternative implementation of the MVR solving algorithm.
         /// </summary>
         public static ISolvingAlgorithm MVRAlgorithm2 { get; private set; }
-        public static ISolvingAlgorithm PreprocessAlgorithm { get; private set; }
 
         /// <summary>
         /// Gets an algorithm that uses Rule 0 to eliminate digits.

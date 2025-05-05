@@ -3,7 +3,12 @@ options(repos = c(CRAN = "https://cloud.r-project.org"))
 # ========================
 # Core Parameters & Paths
 # ========================
-algorithms <- c("BruteForceAlgorithm", "MVRAlgorithm", "MVRAlgorithm2")
+algorithms <- c(
+  "BruteForceAlgorithm",
+  "MVRAlgorithm",
+  "MVRAlgorithm2",
+  "PreprocessAlgorithm"
+)
 difficulties <- c("Easy", "Medium", "Hard", "Expert")
 
 raw_data_path <- "./RData/data/raw-data"
@@ -178,41 +183,51 @@ generate_bar_charts <- function(filtered_data) {
     data = filtered_data,
     FUN = mean
   )
-  for (diff_level in difficulties) {
-    plot_data <- avg_times[avg_times$difficulty == diff_level, ]
-    if (nrow(plot_data) == 0) next
 
-    colors <- sapply(plot_data$algorithm, function(a) {
-      switch(
-        a,
-        BruteForceAlgorithm = "gray50",
-        MVRAlgorithm = "blue",
-        MVRAlgorithm2 = "red"
-      )
-    })
+  # Prepare colors for algorithms
+  algorithm_colors <- c(
+    BruteForceAlgorithm = "gray50",
+    MVRAlgorithm = "blue",
+    MVRAlgorithm2 = "red",
+    PreprocessAlgorithm = "green"
+  )
 
-    fname <- file.path(graphs_dir, paste0("BarChart_", diff_level, ".pdf"))
-    pdf(fname, width = 8, height = 6)
+  # Prepare bar chart data
+  difficulties <- unique(avg_times$difficulty)
+  plot_data <- reshape(
+    avg_times,
+    timevar = "difficulty",
+    idvar = "algorithm",
+    direction = "wide"
+  )
+  plot_data[is.na(plot_data)] <- 0
 
-    bp <- barplot(
-      plot_data$elapsed_time_ms,
-      names.arg = plot_data$algorithm,
-      col = colors,
-      main = paste("Average Time -", diff_level),
-      xlab = "Algorithm",
-      ylab = "Time (ms)",
-      ylim = c(0, max(plot_data$elapsed_time_ms) * 1.1)
-    )
+  # Generate bar chart
+  fname <- file.path(graphs_dir, "BarChart_AllDifficulties.pdf")
+  pdf(fname, width = 10, height = 6)
 
-    text(
-      x = bp,
-      y = plot_data$elapsed_time_ms,
-      labels = round(plot_data$elapsed_time_ms, 3),
-      pos = 3,
-      cex = 0.8
-    )
-    dev.off()
-  }
+  bar_positions <- barplot(
+    as.matrix(plot_data[, -1]),
+    beside = TRUE,
+    col = algorithm_colors[plot_data$algorithm],
+    main = "Average Time by Algorithm and Difficulty",
+    xlab = "Difficulty",
+    ylab = "Time (ms)",
+    names.arg = difficulties,
+    legend.text = plot_data$algorithm,
+    args.legend = list(x = "topright", bty = "n")
+  )
+
+  # Add labels with specified decimal places
+  text(
+    x = bar_positions,
+    y = as.matrix(plot_data[, -1]),
+    labels = round(as.matrix(plot_data[, -1]), 3),
+    pos = 3,
+    cex = 0.8
+  )
+
+  dev.off()
 }
 
 
