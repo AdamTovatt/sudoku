@@ -2,9 +2,11 @@ using System.Numerics;
 
 namespace Sudoku.Solvers
 {
-    // The main differentiating factor of the MVR solver is that
-    // within the recursive algorithm, it always chooses the square
-    // with the least possibilities as the next square.
+    /// <summary>
+    /// The main differentiating factor of the MVR solver is that
+    /// within the recursive algorithm, it always chooses the square
+    /// with the least possibilities as the next square.
+    /// </summary>
     public class MVRAlgorithm2 : ISolvingAlgorithm
     {
         private Grid grid = null!;
@@ -44,7 +46,7 @@ namespace Sudoku.Solvers
 
                             if (grid.GetCell(x, y) != 0) continue;
 
-                            int available = ~(grid.rows[y] | grid.columns[x] | grid.squares[boxX + boxY * 3]) & 0b111111111;
+                            int available = ~(grid.columns[x] | grid.rows[y] | grid.squares[boxX + boxY * 3]) & 0b111111111;
 
                             int count = BitOperations.PopCount((uint)available);
                             if (count == 0) return null;
@@ -73,7 +75,6 @@ namespace Sudoku.Solvers
             return best.x == -1 ? null : best;
         }
 
-
         private bool Solve(int filled)
         {
             if (filled == 81)
@@ -84,13 +85,16 @@ namespace Sudoku.Solvers
 
             var (x, y, mask) = next.Value;
 
-            for (int digit = 1; digit <= BoardSidelength; digit++)
+            int bits = mask;
+            while (bits != 0)
             {
-                if ((mask & 1 << (digit - 1)) == 0) continue;
+                int pick = bits & -bits;
+                int digit = BitOperations.TrailingZeroCount(pick) + 1;
+                bits &= bits - 1;
 
                 grid.SetCell(x, y, digit);
                 if (Solve(filled + 1)) return true;
-                grid.ClearCell(x, y); // Backtrack
+                grid.ClearCell(x, y);
             }
 
             return false;

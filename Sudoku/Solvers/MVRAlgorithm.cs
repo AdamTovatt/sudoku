@@ -2,9 +2,11 @@ using System.Numerics;
 
 namespace Sudoku.Solvers
 {
-    // The main differentiating factor of the MVR solver is that
-    // within the recursive algorithm, it always chooses the square
-    // with the least possibilities as the next square.
+    /// <summary>
+    /// The main differentiating factor of the MVR solver is that
+    /// within the recursive algorithm, it always chooses the square
+    /// with the least possibilities as the next square.
+    /// </summary>
     public class MVRAlgorithm : ISolvingAlgorithm
     {
         private Grid grid = null!;

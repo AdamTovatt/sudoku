@@ -1,19 +1,21 @@
+using System;
 using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Sudoku.Solvers
 {
-    // The main differentiating factor of the MVR solver is that
-    // within the recursive algorithm, it always chooses the square
-    // with the least possibilities as the next square.
+    /// <summary>
+    /// A backtracking Sudoku solver using the Minimum Remaining Value heuristic.
+    /// Always picks the empty cell with the fewest possibilities first,
+    /// and applies simple preprocessing to fill any forced cells.
+    /// This is essentially an improved version of the MVR solver. It handles
+    /// the logic of when the board is solved more efficiently.
+    /// </summary>
     public class PreprocessAlgorithm : ISolvingAlgorithm
     {
         private Grid grid = null!;
         private const int BoardSidelength = 9;
-        private int[,] ValidCandidates = new int[9, 9];
 
         public PreprocessAlgorithm() { }
-
         public PreprocessAlgorithm(Grid grid)
         {
             this.grid = grid;
@@ -22,72 +24,95 @@ namespace Sudoku.Solvers
         public bool SolveGrid(Grid grid)
         {
             this.grid = grid;
-            for (int x = 0; x < BoardSidelength; x++)
-            {
-                for (int y = 0; y < BoardSidelength; y++)
-                {
-                    ValidCandidates[x, y] = 0b111111111;
-                }
-            }
-            Preprocess(grid);
-            return Solve(0, 0);
+            Preprocess();
+            return Solve();
         }
 
         /// <summary>
-        /// Updates the ValidCandidates for each cell.
-        /// Fills all squares with only one alternative directly.
+        /// Repeatedly fills any cell that has exactly one valid candidate.
+        /// Stops when no more singletons can be found.
         /// </summary>
-        /// <param name="grid"></param>
-        public void Preprocess(Grid grid)
+        private void Preprocess()
         {
-            bool progressMade;
-
+            bool progress;
             do
             {
-                progressMade = false;
-
-                for (int x = 0; x < BoardSidelength; x++)
+                progress = false;
+                for (int y = 0; y < BoardSidelength; y++)
                 {
-                    for (int y = 0; y < BoardSidelength; y++)
+                    for (int x = 0; x < BoardSidelength; x++)
                     {
-                        int available = ~(grid.rows[y] | grid.columns[x] | grid.squares[(x / 3) + y / 3 * 3]) & 0b111111111;
+                        if (!grid.IsCellEmpty(x, y)) continue;
 
-                        if (ValidCandidates[x, y] != available)
+                        int mask = ~(grid.columns[x] | grid.rows[y] | grid.squares[(x / 3) + y / 3 * 3]) & 0b111111111;
+                        if (BitOperations.PopCount((uint)mask) == 1)
                         {
-                            if (BitOperations.PopCount((uint)available) + 1 == 1)
-                            {
-                                grid.SetCell(x, y, BitOperations.TrailingZeroCount(available) + 1);
-                                progressMade = true;
-                                ValidCandidates[x, y] = 0;
-                                continue;
-                            }
-
-                            ValidCandidates[x, y] = available;
+                            int digit = BitOperations.TrailingZeroCount(mask) + 1;
+                            grid.SetCell(x, y, digit);
+                            progress = true;
                         }
                     }
                 }
-
-            } while (progressMade);
+            } while (progress);
         }
 
-        private bool Solve(int x, int y)
+        /// <summary>
+        /// Recursive solver: always picks the empty cell with the fewest options.
+        /// </summary>
+        private bool Solve()
         {
-            if (x == 9) { x = 0; y++; }
-            if (y == 9) return true;
+            var (bestX, bestY, bestMask) = FindMostConstrainedCell();
 
-            // If square is already filled
-            if (grid.IsCellEmpty(x, y)) return Solve(x + 1, y);
+            // If no empty cell found, the puzzle is solved
+            if (bestX == -1) return true;
 
-            for (int digit = 1; digit <= 9; digit++)
+            // Try each candidate in the best cell
+            int bits = bestMask;
+            while (bits != 0)
             {
-                if ((ValidCandidates[x, y] & 1 << (digit - 1)) == 0) continue;
+                int pick = bits & -bits;
+                int digit = BitOperations.TrailingZeroCount(pick) + 1;
+                bits &= bits - 1;
 
-                grid.SetCell(x, y, digit);
-                if (Solve(x + 1, y)) return true;
-                grid.ClearCell(x, y); //  Backtrack
+                grid.SetCell(bestX, bestY, digit);
+                if (Solve()) return true;
+                grid.ClearCell(bestX, bestY);
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Scans the board and returns the coordinates and mask of the empty cell
+        /// with the fewest candidates. Returns (-1,-1,0) if no empties remain.
+        /// </summary>
+        private (int x, int y, int mask) FindMostConstrainedCell()
+        {
+            int bestX = -1, bestY = -1;
+            int bestMask = 0;
+            int minCount = BoardSidelength + 1;
+
+            for (int y = 0; y < BoardSidelength; y++)
+            {
+                for (int x = 0; x < BoardSidelength; x++)
+                {
+                    if (!grid.IsCellEmpty(x, y)) continue;
+
+                    int mask = ~(grid.columns[x] | grid.rows[y] | grid.squares[(x / 3) + y / 3 * 3]) & 0b111111111;
+                    int count = BitOperations.PopCount((uint)mask);
+                    if (count == 0) return (x, y, 0);
+                    if (count == 1) return (x, y, mask);
+                    if (count < minCount)
+                    {
+                        minCount = count;
+                        bestMask = mask;
+                        bestX = x;
+                        bestY = y;
+                    }
+                }
+            }
+
+            return (bestX, bestY, bestMask);
         }
     }
 }

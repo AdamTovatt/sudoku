@@ -1,11 +1,13 @@
-using System.Globalization;
 using System.Numerics;
 
 namespace Sudoku.Solvers
 {
-    // This implementation of the MVR Solver does extra checks for
-    // hidden singles. Might be faster than the basic MVR Algorithm
-    // for more advanced sudoku's, but I guess we'll see.
+    /// <summary>
+    /// This implementation of the MVR Solver loads in previously computed
+    /// data that is associated with each cell. This approach is generally
+    /// slower since just computing the data directly is faster than retriving
+    /// it from an array.
+    /// </summary>
     public class LoadAssociatedAlgorithm : ISolvingAlgorithm
     {
         private Grid grid = null!;

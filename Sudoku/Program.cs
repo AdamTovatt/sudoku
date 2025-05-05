@@ -1,9 +1,12 @@
-using System;
 using System.Diagnostics;
 
 using Sudoku;
 using Sudoku.Solvers;
 
+/// <summary>
+/// A quick program to test the solving time for sudoku solvers
+/// implementing the ISolvingAlgorithm interface.
+/// </summary>
 class Program
 {
     static string[] gridStrings =
@@ -22,23 +25,29 @@ class Program
 
     static void Main()
     {
-        /*Console.WriteLine("*** Brute force algorithm");
-        MeasureAlgorithm(Solver.BruteForceAlgorithm, 5);
+        Console.WriteLine("*** Brute force algorithm");
+        MeasureAlgorithm(Solver.BruteForceAlgorithm, 10);
 
         Console.WriteLine("*** Bit algorithm");
-        MeasureAlgorithm(Solver.BitAlgorithm, 5);*/
+        MeasureAlgorithm(Solver.BitAlgorithm, 10);
 
-        /*Console.WriteLine("*** MVR algorithm");
-        MeasureAlgorithm(Solver.MVRAlgorithm, 50000);
+        Console.WriteLine("*** MVR algorithm");
+        MeasureAlgorithm(Solver.MVRAlgorithm, 1000);
 
         Console.WriteLine("*** MVR algorithm 2");
-        MeasureAlgorithm(Solver.MVRAlgorithm2, 50000);*/
+        MeasureAlgorithm(Solver.MVRAlgorithm2, 1000);
 
-        /*Console.WriteLine("*** Associated algorithm");
-        MeasureAlgorithm(Solver.LoadAssociatedAlgorithm, 2000);*/
+        Console.WriteLine("*** Associated algorithm");
+        MeasureAlgorithm(Solver.LoadAssociatedAlgorithm, 1000);
 
         Console.WriteLine("*** Preprocess algorithm");
-        MeasureAlgorithm(Solver.PreprocessAlgorithm, 50000);
+        MeasureAlgorithm(Solver.PreprocessAlgorithm, 2000);
+
+        Console.WriteLine("*** Preprocess NO MVR algorithm");
+        MeasureAlgorithm(Solver.PreprocessNOMVR, 50);
+
+        Console.WriteLine("*** Dumb Preprocess algorithm");
+        MeasureAlgorithm(Solver.DumbPreprocess, 10);
     }
 
     public static void MeasureAlgorithm(ISolvingAlgorithm algorithm, int repetitions)
@@ -73,7 +82,7 @@ class Program
                 if (repetition == repetitions - 1 && solved)
                 {
                     solvedOnLast = true;
-                    solvedCount++;
+                    if (currentGrid.IsSolved()) solvedCount++;
                 }
             }
 

@@ -1,6 +1,8 @@
-using System;
-using System.IO;
-
+/// <summary>
+/// Used with LoadAssociatedAlgorithms to load in precomputed data
+/// from a binary file. The file directory is currently hardcoded, so
+/// this will have to be changed for each use case.
+/// </summary>
 public class Int3DArrayLoader
 {
    public static int[,,] LoadArray(string fileName)

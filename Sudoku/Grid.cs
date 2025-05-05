@@ -2,6 +2,9 @@ using System.Text;
 
 namespace Sudoku
 {
+    /// <summary>
+    /// Represents a 9x9 sudoku board.
+    /// </summary>
     public class Grid
     {
         private int[,] grid;
@@ -119,12 +122,16 @@ namespace Sudoku
 
         public void ClearCell(int x, int y)
         {
+            if (grid[x, y] == 0) return;
+
             int value = grid[x, y];
 
             // Clear the cell
             grid[x, y] = 0;
 
             int mask = ~(1 << (value - 1));
+
+            DigitCount--;
 
             // Clear the bit in the bitmasks
             rows[y] &= mask;
@@ -147,31 +154,31 @@ namespace Sudoku
             return (squares[y / 3 * 3 + (x / 3)] & (1 << (digit - 1))) != 0;
         }
 
-        public bool IsSolved(out InvalidCellInformation? invalidCellInformation)
+        public bool IsSolved()
         {
+            const int FullMask = 0x1FF;  // bits 0–8 all 1 → digits 1–9 present
+
+            // check all rows
+            for (int y = 0; y < SideLength; y++)
+                if (rows[y] != FullMask) return false;
+
+            // check all columns
             for (int x = 0; x < SideLength; x++)
-            {
+                if (columns[x] != FullMask) return false;
+
+            // check all 3×3 squares
+            for (int s = 0; s < SideLength; s++)
+                if (squares[s] != FullMask) return false;
+
+            for (int x = 0; x < SideLength; x++)
                 for (int y = 0; y < SideLength; y++)
                 {
-                    int cellValue = GetCell(x, y);
-
-                    // TODO: Optimize this so it doesn't have to ClearCell and then SetCell
-                    // each time. Don't change IsValid, since IsValid is more important that
-                    // it's fast.
+                    int cell = GetCell(x, y);
                     ClearCell(x, y);
-
-                    if (cellValue == 0 || !IsValid(x, y, cellValue))
-                    {
-                        SetCell(x, y, cellValue);
-                        invalidCellInformation = new InvalidCellInformation(x, y, cellValue);
-                        return false;
-                    }
-
-                    SetCell(x, y, cellValue);
+                    if (!IsValid(x, y, cell)) return false;
+                    SetCell(x, y, cell);
                 }
-            }
 
-            invalidCellInformation = null;
             return true;
         }
 

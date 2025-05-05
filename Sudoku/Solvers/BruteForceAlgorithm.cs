@@ -1,5 +1,10 @@
 namespace Sudoku.Solvers
 {
+    /// <summary>
+    /// A standard brute force solving implementation
+    /// for sudoku. Uses the Grid class to represent
+    /// the sudoku board.
+    /// </summary>
     public class BruteForceAlgorithm : ISolvingAlgorithm
     {
         public bool SolveGrid(Grid grid)
