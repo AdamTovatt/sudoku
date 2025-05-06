@@ -100,6 +100,7 @@ namespace SudokuTests
             CollectionAssert.Contains(solverTypes, typeof(BruteForceAlgorithm));
             CollectionAssert.Contains(solverTypes, typeof(MVRAlgorithm));
             CollectionAssert.Contains(solverTypes, typeof(MVRAlgorithm2));
+            CollectionAssert.Contains(solverTypes, typeof(PreprocessAlgorithm));
         }
     }
 }
