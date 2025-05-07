@@ -2,6 +2,8 @@
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 if (!require(dplyr)) install.packages("dplyr")
 library(dplyr)
+if (!require(dunn.test)) install.packages("dunn.test")
+library(dunn.test)
 # ========================
 # Core Parameters & Paths
 # ========================
@@ -115,19 +117,23 @@ report_outlier_stats <- function(original_data, filtered_data) {
 }
 
 # ========================
-# Plotting Functions
+# Modified Plotting Function
 # ========================
-generate_bar_charts <- function(filtered_data) {
-  # Aggregate mean times
-  avg_times <- aggregate(
+generate_bar_charts <- function(
+    data_source,
+    use_mean = TRUE,
+    pdf_name = "BarChart_AllDifficulties.pdf",
+    chart_title = "Average Time by Algorithm and Difficulty") {
+  # Aggregate based on mean/median choice
+  agg_times <- aggregate(
     elapsed_time_ms ~ algorithm + difficulty,
-    data = filtered_data,
-    FUN = mean
+    data = data_source,
+    FUN = if (use_mean) mean else median
   )
 
   # Reshape to wide format
   plot_data <- reshape(
-    avg_times,
+    agg_times,
     timevar = "difficulty",
     idvar = "algorithm",
     direction = "wide"
@@ -145,20 +151,17 @@ generate_bar_charts <- function(filtered_data) {
   )
 
   # Generate bar chart
-  fname <- file.path(graphs_dir, "BarChart_AllDifficulties.pdf")
+  fname <- file.path(graphs_dir, pdf_name)
   pdf(fname, width = 10, height = 6)
-
-  # Extract difficulty levels from column names
-  difficulty_levels <- difficulties  # Ensure this matches the reshaped data
 
   bar_positions <- barplot(
     as.matrix(plot_data[, -1]),
     beside = TRUE,
     col = algorithm_colors[plot_data$algorithm],
-    main = "Average Time by Algorithm and Difficulty",
+    main = chart_title,
     xlab = "Difficulty",
-    ylab = "Time (ms)",
-    names.arg = difficulty_levels,
+    ylab = if (use_mean) "Time (ms) - Mean" else "Time (ms) - Median",
+    names.arg = difficulties,
     legend.text = plot_data$algorithm,
     args.legend = list(x = "topright", bty = "n"),
     ylim = c(0, max(as.matrix(plot_data[, -1])) * 1.4)
@@ -233,15 +236,6 @@ perform_pairwise_tests <- function(filtered_data) {
     cat("\n===== Difficulty:", diff, "=====\n")
     subset <- filtered_data[filtered_data$difficulty == diff, ]
 
-    # Parametric (t-test)
-    cat("\n-- Parametric (t-test) --\n")
-    pairwise.t.test(
-      subset$elapsed_time_ms,
-      subset$algorithm,
-      p.adjust.method = "bonferroni"
-    ) %>%
-      print()
-
     # Non-parametric (Mann-Whitney)
     cat("\n-- Non-parametric (Mann-Whitney) --\n")
     pairwise.wilcox.test(
@@ -250,6 +244,15 @@ perform_pairwise_tests <- function(filtered_data) {
       p.adjust.method = "bonferroni"
     ) %>%
       print()
+
+    # Non-parametric (Dunn's Test)
+    cat("\n-- Non-parametric (Dunn's Test) --\n")
+    dunn_results <- dunn.test::dunn.test(
+      x = subset$elapsed_time_ms,
+      g = subset$algorithm,
+      method = "bonferroni"
+    )
+    print(dunn_results)
   }
   sink()
 }
@@ -308,10 +311,11 @@ check_normality <- function(filtered_data) {
 
 generate_single_qq_plot <- function(filtered_data, algorithm, difficulty) {
   subset <- filtered_data[
-    filtered_data$algorithm == algorithm & filtered_data$difficulty == difficulty,
+    filtered_data$algorithm == algorithm &
+      filtered_data$difficulty == difficulty,
     "elapsed_time_ms"
   ]
-  
+
   if (length(subset) > 3) {
     # Shapiro-Wilk requires at least 3 samples
     subset_sample <- sample(subset, min(5000, length(subset)))
@@ -325,9 +329,15 @@ generate_single_qq_plot <- function(filtered_data, algorithm, difficulty) {
       shapiro_test$p.value
     )
   }
-  
-  png(file.path(graphs_dir, paste0("qq_plot_", algorithm, "_", difficulty, ".png")), 
-      width = 800, height = 600)
+
+  png(
+    file.path(
+      graphs_dir,
+      paste0("qq_plot_", algorithm, "_", difficulty, ".png")
+    ),
+    width = 800,
+    height = 600
+  )
   qqnorm(subset, main = paste(algorithm, "-", difficulty))
   qqline(subset, col = "red")
   dev.off()
@@ -360,15 +370,43 @@ save_outlier_counts(processed_data$original)
 filtered_data <- processed_data$filtered
 
 # Report statistics
-report_outlier_stats(processed_data$original, filtered_data)
-check_normality(filtered_data)
-perform_omnibus_tests(filtered_data)
-perform_pairwise_tests(filtered_data)
-generate_single_qq_plot(filtered_data, "BruteForceAlgorithm", "Expert")
+# report_outlier_stats(processed_data$original, filtered_data)
+# check_normality(filtered_data)
+# perform_omnibus_tests(filtered_data)
+# perform_pairwise_tests(filtered_data)
+# generate_single_qq_plot(filtered_data, "BruteForceAlgorithm", "Expert")
 
 # Generate individual plots
-generate_bar_charts(filtered_data)
 generate_mvr_boxplots(filtered_data)
+
+generate_bar_charts(filtered_data)
+
+generate_bar_charts(
+  data_source = processed_data$original,
+  use_mean = TRUE,
+  pdf_name = "BarChart_OriginalData_Mean.pdf",
+  chart_title = "Original Data - Mean Times by Algorithm and Difficulty"
+)
+
+generate_bar_charts(
+  data_source = filtered_data,
+  use_mean = FALSE,
+  pdf_name = "BarChart_FilteredData_Median.pdf",
+  chart_title = "Filtered Data - Median Times by Algorithm and Difficulty"
+)
+
+generate_bar_charts(
+  data_source = processed_data$original,
+  use_mean = FALSE,
+  pdf_name = "BarChart_OriginalData_Median.pdf",
+  chart_title = "Original Data - Median Times by Algorithm and Difficulty"
+)
+
+median_table <- aggregate(
+  elapsed_time_ms ~ algorithm + difficulty,
+  data = filtered_data,
+  FUN = median
+)
 
 # Combine existing plots into report
 generate_combined_report()
@@ -379,3 +417,4 @@ message(
   "\n- Combined report: ",
   file.path(root_dir, "Combined_Report.pdf")
 )
+print(median_table)
