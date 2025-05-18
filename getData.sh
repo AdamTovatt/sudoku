@@ -4,6 +4,7 @@
 Rdir="./RData/R/"
 baseDataDir="./RData/data/raw-data"
 graphDir="./RData/data/graphs"
+libsDir="./RData/R/r_libs"
 
 # Define solvers and initialize iteration map
 declare -A solvers=(
@@ -20,6 +21,7 @@ createDirs () {
     mkdir -p "$dir"
   done
   mkdir -p "$graphDir"
+  mkdir -p "$libsDir"
   echo "Created necessary directories."
 }
 
