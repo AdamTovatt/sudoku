@@ -120,10 +120,11 @@ report_outlier_stats <- function(original_data, filtered_data) {
 # Modified Plotting Function
 # ========================
 generate_bar_charts <- function(
-    data_source,
-    use_mean = TRUE,
-    pdf_name = "BarChart_AllDifficulties.pdf",
-    chart_title = "Average Time by Algorithm and Difficulty") {
+  data_source,
+  use_mean = TRUE,
+  pdf_name = "BarChart_AllDifficulties.pdf",
+  chart_title = "Average Time by Algorithm and Difficulty"
+) {
   # Aggregate based on mean/median choice
   agg_times <- aggregate(
     elapsed_time_ms ~ algorithm + difficulty,
@@ -309,6 +310,53 @@ check_normality <- function(filtered_data) {
   dev.off()
 }
 
+generate_all_data_histogram <- function(
+  Data,
+  algorithm,
+  difficulty,
+  max_x = NULL
+) {
+  # Filter data for specific algorithm and difficulty
+  subset_data <- Data[
+    Data$algorithm == algorithm & Data$difficulty == difficulty,
+    "elapsed_time_ms"
+  ]
+
+  # Check if there's data to plot
+  if (length(subset_data) == 0) {
+    stop("No data found for ", algorithm, " - ", difficulty)
+  }
+
+  if (!is.null(max_x)) {
+    subset_data <- subset_data[subset_data <= max_x]
+    if (length(subset_data) == 0) {
+      stop("No data remaining after cutoff for ", algorithm, " - ", difficulty)
+    }
+  }
+  # Create filename with algorithm and difficulty
+  clean_algo <- gsub(" ", "", algorithm)
+  clean_diff <- gsub(" ", "", difficulty)
+  fname <- file.path(
+    graphs_dir,
+    paste0("histogram_", clean_algo, "_", clean_diff, ".png")
+  )
+
+  # Create histogram with 100 bins
+  png(fname, width = 1600, height = 1200)
+  hist(
+    subset_data,
+    breaks = 1000,
+    main = paste("Time Distribution:", algorithm, "-", difficulty),
+    xlab = "Elapsed Time (ms)",
+    ylab = "Frequency",
+    col = "skyblue",
+    border = "white",
+  )
+  dev.off()
+
+  message("Created histogram: ", fname)
+}
+
 generate_single_qq_plot <- function(filtered_data, algorithm, difficulty) {
   subset <- filtered_data[
     filtered_data$algorithm == algorithm &
@@ -374,10 +422,21 @@ filtered_data <- processed_data$filtered
 # check_normality(filtered_data)
 # perform_omnibus_tests(filtered_data)
 # perform_pairwise_tests(filtered_data)
-# generate_single_qq_plot(filtered_data, "BruteForceAlgorithm", "Expert")
+generate_single_qq_plot(
+  processed_data$original,
+  "BruteForceAlgorithm",
+  "Expert"
+)
 
 # Generate individual plots
 generate_mvr_boxplots(filtered_data)
+
+generate_all_data_histogram(
+  processed_data$original,
+  "BruteForceAlgorithm",
+  "Expert",
+  20
+)
 
 generate_bar_charts(filtered_data)
 
