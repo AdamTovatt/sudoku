@@ -1,9 +1,18 @@
+# =================================
+# Library Path & Required Packages
+# =================================
 .libPaths("./RData/R/r_libs")
 options(repos = c(CRAN = "https://cloud.r-project.org"))
+
 if (!require(dplyr)) install.packages("dplyr")
 library(dplyr)
+
 if (!require(dunn.test)) install.packages("dunn.test")
 library(dunn.test)
+
+if (!require(pdftools)) install.packages("pdftools")
+library(pdftools)
+
 # ========================
 # Core Parameters & Paths
 # ========================
@@ -152,32 +161,34 @@ generate_bar_charts <- function(
   )
 
   # Generate bar chart
-  fname <- file.path(graphs_dir, pdf_name)
-  pdf(fname, width = 10, height = 6)
+  suppressWarnings({
+    fname <- file.path(graphs_dir, pdf_name)
+    pdf(fname, width = 10, height = 6)
 
-  bar_positions <- barplot(
-    as.matrix(plot_data[, -1]),
-    beside = TRUE,
-    col = algorithm_colors[plot_data$algorithm],
-    main = chart_title,
-    xlab = "Difficulty",
-    ylab = if (use_mean) "Time (ms) - Mean" else "Time (ms) - Median",
-    names.arg = difficulties,
-    legend.text = plot_data$algorithm,
-    args.legend = list(x = "topright", bty = "n"),
-    ylim = c(0, max(as.matrix(plot_data[, -1])) * 1.4)
-  )
+    bar_positions <- barplot(
+      as.matrix(plot_data[, -1]),
+      beside = TRUE,
+      col = algorithm_colors[plot_data$algorithm],
+      main = chart_title,
+      xlab = "Difficulty",
+      ylab = if (use_mean) "Time (ms) - Mean" else "Time (ms) - Median",
+      names.arg = difficulties,
+      legend.text = plot_data$algorithm,
+      args.legend = list(x = "topright", bty = "n"),
+      ylim = c(0, max(as.matrix(plot_data[, -1])) * 1.4)
+    )
 
-  # Add labels with specified decimal places
-  text(
-    x = as.vector(bar_positions),
-    y = as.vector(as.matrix(plot_data[, -1])),
-    labels = round(as.vector(as.matrix(plot_data[, -1])), 2),
-    pos = 3,
-    cex = 0.8
-  )
+    # Add labels with specified decimal places
+    text(
+      x = as.vector(bar_positions),
+      y = as.vector(as.matrix(plot_data[, -1])),
+      labels = round(as.vector(as.matrix(plot_data[, -1])), 2),
+      pos = 3,
+      cex = 0.8
+    )
 
-  dev.off()
+    dev.off()
+  })
 }
 
 
@@ -191,41 +202,43 @@ generate_mvr_boxplots <- function(filtered_data) {
     labels = c("MVR1", "MVR2")
   )
 
-  fname <- file.path(graphs_dir, "BoxPlot_AllDifficulties.pdf")
-  pdf(fname, width = 12, height = 6)
-  boxplot(
-    elapsed_time_ms ~ interaction(algorithm, difficulty),
-    data = mvr_data,
-    col = c("blue", "red"),
-    main = "MVR Box Plot - All Difficulties",
-    xlab = "Difficulty",
-    ylab = "Time (ms)",
-    las = 1,
-    xaxt = "n" # Suppress default x-axis labels
-  )
+  suppressWarnings({
+    fname <- file.path(graphs_dir, "BoxPlot_AllDifficulties.pdf")
+    pdf(fname, width = 12, height = 6)
+    boxplot(
+      elapsed_time_ms ~ interaction(algorithm, difficulty),
+      data = mvr_data,
+      col = c("blue", "red"),
+      main = "MVR Box Plot - All Difficulties",
+      xlab = "Difficulty",
+      ylab = "Time (ms)",
+      las = 1,
+      xaxt = "n" # Suppress default x-axis labels
+    )
 
-  # Add custom x-axis labels
-  difficulty_positions <- seq(
-    1.5,
-    by = 2,
-    length.out = length(levels(mvr_data$difficulty))
-  )
-  axis(
-    side = 1,
-    at = difficulty_positions,
-    labels = levels(mvr_data$difficulty),
-    tick = FALSE,
-    line = 0
-  )
+    # Add custom x-axis labels
+    difficulty_positions <- seq(
+      1.5,
+      by = 2,
+      length.out = length(levels(mvr_data$difficulty))
+    )
+    axis(
+      side = 1,
+      at = difficulty_positions,
+      labels = levels(mvr_data$difficulty),
+      tick = FALSE,
+      line = 0
+    )
 
-  # Add legend
-  legend(
-    "topright",
-    legend = c("MVR1", "MVR2"),
-    fill = c("blue", "red"),
-    bty = "n"
-  )
-  dev.off()
+    # Add legend
+    legend(
+      "topright",
+      legend = c("MVR1", "MVR2"),
+      fill = c("blue", "red"),
+      bty = "n"
+    )
+    dev.off()
+  })
 }
 
 perform_pairwise_tests <- function(filtered_data) {
@@ -279,35 +292,23 @@ perform_omnibus_tests <- function(filtered_data) {
 }
 
 check_normality <- function(filtered_data) {
-  png(file.path(graphs_dir, "qq_plots.png"), width = 1200, height = 800)
-  par(mfrow = c(4, 4)) # 4 algorithms x 4 difficulties
+  suppressWarnings({
+    pdf(file.path(graphs_dir, "qq_plots.pdf"), width = 10, height = 6)
+    par(mfrow = c(4, 4)) # 4 algorithms x 4 difficulties
 
-  for (algo in algorithms) {
-    for (diff in difficulties) {
-      subset <- filtered_data[
-        filtered_data$algorithm == algo & filtered_data$difficulty == diff,
-        "elapsed_time_ms"
-      ]
+    for (algo in algorithms) {
+      for (diff in difficulties) {
+        subset <- filtered_data[
+          filtered_data$algorithm == algo & filtered_data$difficulty == diff,
+          "elapsed_time_ms"
+        ]
 
-      if (length(subset) > 3) {
-        # Shapiro-Wilk requires at least 3 samples
-        subset_sample <- sample(subset, min(5000, length(subset)))
-        shapiro_test <- shapiro.test(subset_sample)
-        message(
-          "Shapiro-Wilk test for ",
-          algo,
-          " - ",
-          diff,
-          ": p-value = ",
-          shapiro_test$p.value
-        )
+        qqnorm(subset, main = paste(algo, "-", diff))
+        qqline(subset, col = "red")
       }
-
-      qqnorm(subset, main = paste(algo, "-", diff))
-      qqline(subset, col = "red")
     }
-  }
-  dev.off()
+    dev.off()
+  })
 }
 
 generate_all_data_histogram <- function(
@@ -338,21 +339,23 @@ generate_all_data_histogram <- function(
   clean_diff <- gsub(" ", "", difficulty)
   fname <- file.path(
     graphs_dir,
-    paste0("histogram_", clean_algo, "_", clean_diff, ".png")
+    paste0("histogram_", clean_algo, "_", clean_diff, ".pdf")
   )
 
   # Create histogram with 100 bins
-  png(fname, width = 1600, height = 1200)
-  hist(
-    subset_data,
-    breaks = 1000,
-    main = paste("Time Distribution:", algorithm, "-", difficulty),
-    xlab = "Elapsed Time (ms)",
-    ylab = "Frequency",
-    col = "skyblue",
-    border = "white",
-  )
-  dev.off()
+  suppressWarnings({
+    pdf(fname, width = 10, height = 6)
+    hist(
+      subset_data,
+      breaks = 1000,
+      main = paste("Time Distribution:", algorithm, "-", difficulty),
+      xlab = "Elapsed Time (ms)",
+      ylab = "Frequency",
+      col = "skyblue",
+      border = "white",
+    )
+    dev.off()
+  })
 
   message("Created histogram: ", fname)
 }
@@ -363,50 +366,38 @@ generate_single_qq_plot <- function(filtered_data, algorithm, difficulty) {
       filtered_data$difficulty == difficulty,
     "elapsed_time_ms"
   ]
-
-  if (length(subset) > 3) {
-    # Shapiro-Wilk requires at least 3 samples
-    subset_sample <- sample(subset, min(5000, length(subset)))
-    shapiro_test <- shapiro.test(subset_sample)
-    message(
-      "Shapiro-Wilk test for ",
-      algorithm,
-      " - ",
-      difficulty,
-      ": p-value = ",
-      shapiro_test$p.value
+  
+  suppressWarnings({
+    pdf(
+      file.path(
+        graphs_dir,
+        paste0("qq_plot_", algorithm, "_", difficulty, ".pdf")
+      ),
+      width = 10,
+      height = 6
     )
-  }
-
-  png(
-    file.path(
-      graphs_dir,
-      paste0("qq_plot_", algorithm, "_", difficulty, ".png")
-    ),
-    width = 800,
-    height = 600
-  )
-  qqnorm(subset, main = paste(algorithm, "-", difficulty))
-  qqline(subset, col = "red")
-  dev.off()
+    qqnorm(subset, main = paste(algorithm, "-", difficulty))
+    qqline(subset, col = "red")
+    dev.off()
+  })
 }
 
 # ========================
 # Combined Report
 # ========================
 generate_combined_report <- function() {
-  if (!require(pdftools)) install.packages("pdftools")
-  library(pdftools)
 
   output_file <- file.path(root_dir, "Combined_Report.pdf")
   plot_files <- list.files(graphs_dir, pattern = "\\.pdf$", full.names = TRUE)
 
-  if (length(plot_files) > 0) {
-    pdf_combine(plot_files, output = output_file)
-    message("Combined report created from existing plots")
-  } else {
-    warning("No plot files found to combine")
-  }
+  suppressWarnings({
+    if (length(plot_files) > 0) {
+      pdf_combine(plot_files, output = output_file)
+      message("Combined report created from existing plots")
+    } else {
+      warning("No plot files found to combine")
+    }
+  })
 }
 
 # ========================
@@ -418,47 +409,52 @@ save_outlier_counts(processed_data$original)
 filtered_data <- processed_data$filtered
 
 # Report statistics
-# report_outlier_stats(processed_data$original, filtered_data)
-# check_normality(filtered_data)
-# perform_omnibus_tests(filtered_data)
-# perform_pairwise_tests(filtered_data)
 generate_single_qq_plot(
-  processed_data$original,
+  filtered_data,
   "BruteForceAlgorithm",
   "Expert"
 )
 
-# Generate individual plots
-generate_mvr_boxplots(filtered_data)
 
-generate_all_data_histogram(
-  processed_data$original,
-  "BruteForceAlgorithm",
-  "Expert",
-  20
-)
+# Generate individual plots 
 
-generate_bar_charts(filtered_data)
+# ================
+# These are the graphs that weren't used in
+# the final raport as they are useless.
+# If you still wish to see the results here it is.
+# generate_mvr_boxplots(filtered_data)
 
-generate_bar_charts(
-  data_source = processed_data$original,
-  use_mean = TRUE,
-  pdf_name = "BarChart_OriginalData_Mean.pdf",
-  chart_title = "Original Data - Mean Times by Algorithm and Difficulty"
-)
+#generate_all_data_histogram(
+#  processed_data$original,
+#  "BruteForceAlgorithm",
+#  "Expert",
+#  20
+#)
+
+#generate_bar_charts(filtered_data)
+#
+#generate_bar_charts(
+#  data_source = processed_data$original,
+#  use_mean = TRUE,
+#  pdf_name = "BarChart_OriginalData_Mean.pdf",
+#  chart_title = "Original Data - Mean Times by Algorithm and Difficulty"
+#)
+
+#generate_bar_charts(
+#  data_source = processed_data$original,
+#  use_mean = FALSE,
+#  pdf_name = "BarChart_OriginalData_Median.pdf",
+#  chart_title = "Original Data - Median Times by Algorithm and Difficulty"
+#)
+
+# check_normality(filtered_data)
+# =================
 
 generate_bar_charts(
   data_source = filtered_data,
   use_mean = FALSE,
   pdf_name = "BarChart_FilteredData_Median.pdf",
   chart_title = "Filtered Data - Median Times by Algorithm and Difficulty"
-)
-
-generate_bar_charts(
-  data_source = processed_data$original,
-  use_mean = FALSE,
-  pdf_name = "BarChart_OriginalData_Median.pdf",
-  chart_title = "Original Data - Median Times by Algorithm and Difficulty"
 )
 
 median_table <- aggregate(
@@ -471,9 +467,9 @@ median_table <- aggregate(
 generate_combined_report()
 
 message(
-  "Analysis complete! Check:\n- Individual graphs: ",
+  "Analysis complete! Check:\n- Individual graphs and test results: ",
   graphs_dir,
-  "\n- Combined report: ",
+  "\n- Combined report of pdf documents: ",
   file.path(root_dir, "Combined_Report.pdf")
 )
 print(median_table)
